@@ -7,12 +7,24 @@
 #define DEFAULT_PORT "27016"
 #define MC 2
 
+struct Client {
+	int id;
+	//dodati thread kada ovako normalno profunkcionise xD
+	SOCKET socket; //nemam pojma kako se radi sa ovim, to je samo neki broj
+	char* ipAdr;
+	int port;
+};
+
 bool InitializeWindowsSockets();
 void InitializeSelect(SOCKET *socket);
+
+int globalIdClient = 123456;
 
 int index = 0;
 int  main(void)
 {
+	Client clients[2]; //doraditi da se dinamicki menja ovaj broj preko realloc-a
+
 	// Socket used for listening for new clients 
 	SOCKET listenSocket = INVALID_SOCKET;
 	// Socket used for communication with client
@@ -21,6 +33,7 @@ int  main(void)
 	int iResult;
 	// Buffer used for storing incoming data
 	char recvbuf[DEFAULT_BUFLEN];
+	char sendbuf[DEFAULT_BUFLEN];
 
 	if (InitializeWindowsSockets() == false)
 	{
@@ -96,19 +109,27 @@ int  main(void)
 
 	do
 	{
+		struct sockaddr_in clientAddress;
+		int addrlen = sizeof(clientAddress);
+
 		timeval timeVal;
 		timeVal.tv_sec = 1;
 		timeVal.tv_usec = 0;
 
 		FD_SET set;
 		FD_ZERO(&set);
+
+		FD_SET writeSet;
+		FD_ZERO(&writeSet);
+
 		if (index != MC)
 			FD_SET(listenSocket, &set);
 		for (int i = 0; i < index; ++i) {
 			FD_SET(acceptedSocket[i], &set);
+			FD_SET(acceptedSocket[i], &writeSet);
 		}
 
-		iResult = select(0, &set, NULL, NULL, &timeVal);
+		iResult = select(0, &set, &writeSet, NULL, &timeVal);
 		if (iResult == SOCKET_ERROR) {
 			printf("select failed with error: %d\n", WSAGetLastError());
 		}
@@ -117,7 +138,7 @@ int  main(void)
 			continue;
 		}
 		else if (FD_ISSET(listenSocket, &set)) {
-			acceptedSocket[index] = accept(listenSocket, NULL, NULL);
+			acceptedSocket[index] = accept(listenSocket, (struct sockaddr *)&clientAddress, &addrlen);
 			if (acceptedSocket[index] == INVALID_SOCKET)
 			{
 				printf("accept failed with error: %d\n", WSAGetLastError());
@@ -125,6 +146,15 @@ int  main(void)
 				WSACleanup();
 				return 1;
 			}
+			char *clientip = new char[20];
+			strcpy(clientip, inet_ntoa(clientAddress.sin_addr));
+			printf("Client port: %d, IP address: %s is accepted\n", clientAddress.sin_port, clientip);
+
+			clients[index].id = globalIdClient++;
+			clients[index].socket = acceptedSocket[index];
+			clients[index].ipAdr = clientip;
+			clients[index].port = clientAddress.sin_port;
+
 			++index;
 		}
 		else {
@@ -137,7 +167,7 @@ int  main(void)
 					iResult = recv(acceptedSocket[i], recvbuf, DEFAULT_BUFLEN, 0);
 					if (iResult > 0)
 					{
-						printf("Message received from client: %s.\n", recvbuf);
+						printf("Message received from client(port: %d, ip: %s, id: %d): %s.\n",clients[i].port, clients[i].ipAdr, clients[i].id, recvbuf);
 					}
 					else if (iResult == 0)
 					{
@@ -148,7 +178,8 @@ int  main(void)
 							acceptedSocket[j] = acceptedSocket[j + 1];
 						}
 						acceptedSocket[index - 1] = 0;
-						--index;
+						--index;	
+						//*****************************treba sortirati niz klijenata i izbaciti tog koji je pukao ili se ugasio
 					}
 					else
 					{
@@ -160,55 +191,28 @@ int  main(void)
 						}
 						acceptedSocket[index - 1] = 0;
 						--index;
+						//***************************** i ovde
 					}
+				}
+				else if (FD_ISSET(acceptedSocket[i], &writeSet))
+				{
+					const char *messageToSend = "OK.";
+					iResult = send(acceptedSocket[i], messageToSend, (int)strlen(messageToSend) + 1, 0);
+					if (iResult == SOCKET_ERROR)
+					{
+						printf("send failed with error: %d\n", WSAGetLastError());
+						closesocket(acceptedSocket[i]);
+						WSACleanup();
+						return 1;
+					}
+
+					printf("Server bytes Sent: %ld\n", iResult);
+					printf("Wait 2 sec . . .\n");
+					Sleep(2000);
 				}
 			}
 		}
-		/*
-		// Wait for clients and accept client connections.
-		// Returning value is acceptedSocket used for further
-		// Client<->Server communication. This version of
-		// server will handle only one client.
-		acceptedSocket = accept(listenSocket, NULL, NULL);
-
-		if (acceptedSocket == INVALID_SOCKET)
-		{
-			printf("accept failed with error: %d\n", WSAGetLastError());
-			closesocket(listenSocket);
-			WSACleanup();
-			return 1;
-		}
-		unsigned long nonBlockingMode = 1;
-		iResult = ioctlsocket(acceptedSocket, FIONBIO, &nonBlockingMode);
-		if (iResult == SOCKET_ERROR) {
-			printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
-		}
-
-		do
-		{
-			InitializeSelect(&acceptedSocket);
-			// Receive data until the client shuts down the connection
-			iResult = recv(acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
-			if (iResult > 0)
-			{
-				printf("Message received from client: %s.\n", recvbuf);
-			}
-			else if (iResult == 0)
-			{
-				// connection was closed gracefully
-				printf("Connection with client closed.\n");
-				closesocket(acceptedSocket);
-			}
-			else
-			{
-				// there was an error during recv
-				printf("recv failed with error: %d\n", WSAGetLastError());
-				closesocket(acceptedSocket);
-			}
-		} while (iResult > 0);
-
-		// here is where server shutdown loguc could be placed
-		*/
+		
 	} while (1);
 
 	for (int i = 0; i < index; ++i) {
@@ -221,18 +225,7 @@ int  main(void)
 			return 1;
 		}
 	}
-	/*
-	// shutdown the connection since we're done
-	iResult = shutdown(acceptedSocket, SD_SEND);
-	if (iResult == SOCKET_ERROR)
-	{
-		printf("shutdown failed with error: %d\n", WSAGetLastError());
-		closesocket(acceptedSocket);
-		WSACleanup();
-		return 1;
-	}
-	*/
-	// cleanup
+	
 	closesocket(listenSocket);
 	WSACleanup();
 
@@ -258,7 +251,7 @@ void InitializeSelect(SOCKET *socket) {
 		FD_SET(*socket, &set);
 
 		timeval timeVal;
-		timeVal.tv_sec = 1;
+		timeVal.tv_sec = 2;
 		timeVal.tv_usec = 0;
 
 		int iResult = select(0, &set, NULL, NULL, &timeVal);
