@@ -13,11 +13,9 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 27016
 
-// Initializes WinSock2 library
-// Returns true if succeeded, false otherwise.
-bool InitializeWindowsSockets();
-void InitializeSelect(SOCKET *socket);
-char* GenerateMessage();
+#include "funcDefinitions.h"
+#include "communicationFuncs.h"
+#include "clientMethods.h"
 
 int __cdecl main(int argc, char **argv)
 {
@@ -137,57 +135,3 @@ int __cdecl main(int argc, char **argv)
 
 	return 0;
 }
-
-char* GenerateMessage() {
-
-	srand(time(NULL));
-	int random = (rand() % 20 ) + 10;
-
-	char* message = (char*)malloc(sizeof(char) * (random + 1));
-
-	memset(message, 'a', random * sizeof(char));
-	memset(message + random , NULL , 1);
-
-	return message;
-}
-
-bool InitializeWindowsSockets()
-{
-	WSADATA wsaData;
-	// Initialize windows sockets library for this process
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-	{
-		printf("WSAStartup failed with error: %d\n", WSAGetLastError());
-		return false;
-	}
-	return true;
-}
-
-void InitializeSelect(SOCKET *socket) {
-	while (true) {
-		FD_SET set;
-		FD_ZERO(&set);
-		FD_SET(*socket, &set);
-
-		FD_SET recvset;
-		FD_ZERO(&recvset);
-		FD_SET(*socket, &recvset);
-
-		timeval timeVal;
-		timeVal.tv_sec = 1;
-		timeVal.tv_usec = 0;
-
-		int iResult = select(0, &recvset, &set, NULL, &timeVal);
-		if (iResult == SOCKET_ERROR) {
-			//error
-		}
-		else if (iResult == 0) {
-			printf("I'm waiting...\n");
-			continue;
-		}
-		else if (iResult > 0) {
-			break;
-		}
-	}
-}
-

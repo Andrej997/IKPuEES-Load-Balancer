@@ -20,7 +20,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="methods.h">
+    <ClInclude Include="funcDefinitions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="communicationFuncs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clientMethods.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
