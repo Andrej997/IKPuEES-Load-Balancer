@@ -76,7 +76,7 @@ int __cdecl main(int argc, char **argv)
 		FD_SET(connectSocket, &recvset);
 
 		timeval timeVal;
-		timeVal.tv_sec = 1;
+		timeVal.tv_sec = 0;
 		timeVal.tv_usec = 0;
 
 		int iResult = select(0, &recvset, &set, NULL, &timeVal);
@@ -121,7 +121,7 @@ int __cdecl main(int argc, char **argv)
 
 			printf("Bytes Sent: %ld\n", iResult);
 			//getchar();
-			Sleep(3000);
+			Sleep(2000);
 		}
 		else {
 			//nesto
