@@ -3,3 +3,4 @@
 bool InitializeWindowsSockets();
 void InitializeSelect(SOCKET *socket);
 void SetNonblocking(SOCKET *socket);
+DWORD WINAPI myThreadFun(void *vargp);
