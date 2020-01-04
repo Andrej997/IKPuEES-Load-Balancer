@@ -99,7 +99,7 @@ int __cdecl main(int argc, char **argv)
 				printf("Message received from server: %s\n", recvbuf);
 				Message *message = (Message*)malloc(sizeof(Message));
 				message->size = *(int*)recvbuf;
-				strcpy(message->message, recvbuf + sizeof(int));
+				strcpy_s(recvbuf + sizeof(int), message->size, message->message);
 				AddAtEnd(&headMessages, message->message, message->size);
 				free(message);
 			}
