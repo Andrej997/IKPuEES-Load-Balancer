@@ -122,6 +122,7 @@
     <ClInclude Include="funcDefinitions.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="structs.h" />
+    <ClInclude Include="threadFuncs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

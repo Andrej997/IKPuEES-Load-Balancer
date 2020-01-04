@@ -4,7 +4,8 @@
 #include <stdio.h>
 
 #define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT "27016"
+#define DEFAULT_PORT "5059"
+#define DEFAULT_PORT_WORKER "27016"
 
 //#include "list.h"
 #include "structs.h"
@@ -14,86 +15,23 @@
 #include "threadFuncs.h"
 
 int globalIdClient = 123456;
+int globalIdWorker = 1;
 
 int index = 0;
 Node *headClients = NULL; // list of clients
 
 int main(void) {
 	// Socket used for listening for new clients 
-	SOCKET listenSocket = INVALID_SOCKET;
+	SOCKET listenSocket = SetListenSocket(DEFAULT_PORT);
+
+	// Socket used for listening for new workers
+	SOCKET listenSocketWorker = SetListenSocket(DEFAULT_PORT_WORKER);
 
 	// variable used to store function return value
 	int iResult;
 	// Buffer used for storing incoming data
 	char recvbuf[DEFAULT_BUFLEN];
 	char sendbuf[DEFAULT_BUFLEN];
-
-	if (InitializeWindowsSockets() == false)
-	{
-		// we won't log anything since it will be logged
-		// by InitializeWindowsSockets() function
-		return 1;
-	}
-
-	// Prepare address information structures
-	addrinfo *resultingAddress = NULL;
-	addrinfo hints;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;       // IPv4 address
-	hints.ai_socktype = SOCK_STREAM; // Provide reliable data streaming
-	hints.ai_protocol = IPPROTO_TCP; // Use TCP protocol
-	hints.ai_flags = AI_PASSIVE;     // 
-
-	// Resolve the server address and port
-	iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &resultingAddress);
-	if (iResult != 0)
-	{
-		printf("getaddrinfo failed with error: %d\n", iResult);
-		WSACleanup();
-		return 1;
-	}
-
-	// Create a SOCKET for connecting to server
-	listenSocket = socket(AF_INET,      // IPv4 address famly
-		SOCK_STREAM,  // stream socket
-		IPPROTO_TCP); // TCP
-
-	if (listenSocket == INVALID_SOCKET)
-	{
-		printf("socket failed with error: %ld\n", WSAGetLastError());
-		freeaddrinfo(resultingAddress);
-		WSACleanup();
-		return 1;
-	}
-
-	// Setup the TCP listening socket - bind port number and local address 
-	// to socket
-	iResult = bind(listenSocket, resultingAddress->ai_addr, (int)resultingAddress->ai_addrlen);
-	if (iResult == SOCKET_ERROR)
-	{
-		printf("bind failed with error: %d\n", WSAGetLastError());
-		freeaddrinfo(resultingAddress);
-		closesocket(listenSocket);
-		WSACleanup();
-		return 1;
-	}
-
-	// Set socket at nonbloking mode
-	SetNonblocking(&listenSocket);
-
-	// Since we don't need resultingAddress any more, free it
-	freeaddrinfo(resultingAddress);
-
-	// Set listenSocket in listening mode
-	iResult = listen(listenSocket, SOMAXCONN);
-	if (iResult == SOCKET_ERROR)
-	{
-		printf("listen failed with error: %d\n", WSAGetLastError());
-		closesocket(listenSocket);
-		WSACleanup();
-		return 1;
-	}
 
 	printf("Server initialized, waiting for clients.\n");
 

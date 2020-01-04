@@ -1,8 +1,6 @@
 #pragma once
 
 unsigned long nonBlockingMode = 1;
-//extern int index;
-//extern Node* headClients;
 
 bool InitializeWindowsSockets()
 {
@@ -47,71 +45,75 @@ void SetNonblocking(SOCKET *socket) {
 	}
 }
 
-//DWORD WINAPI myThreadFun(void *vargp) {
-//	SOCKET socket = *(SOCKET*)vargp;
-//	char recvbuf[DEFAULT_BUFLEN];
-//	//unsigned long nonBlockingMode = 1;
-//	timeval timeVal;
-//	timeVal.tv_sec = 1;
-//	timeVal.tv_usec = 0;
-//	struct sockaddr_in clientAddress;
-//	int addrlen = sizeof(clientAddress);
-//
-//	while (true) {
-//		FD_SET set;
-//		FD_ZERO(&set);
-//
-//		FD_SET writeSet;
-//		FD_ZERO(&writeSet);
-//
-//		FD_SET(socket, &set);
-//		FD_SET(socket, &writeSet);
-//
-//		int iResult = select(0, &set, &writeSet, NULL, &timeVal);
-//
-//		if (FD_ISSET(socket, &set)) {
-//			iResult = ioctlsocket(socket, FIONBIO, &nonBlockingMode);
-//			if (iResult == SOCKET_ERROR) {
-//				printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
-//			}
-//			iResult = recv(socket, recvbuf, DEFAULT_BUFLEN, 0);
-//			if (iResult > 0)
-//			{
-//				for (int i = 0; i < index; i++)
-//				{
-//					if (socket == headClients[i].client->acceptedSocket) {
-//						printf("Thread id = %d. Client id: %d, port: %d, IP address: %s. Message: %s\n", GetCurrentThreadId(), headClients[i].client->id, headClients[i].client->port, headClients[i].client->ipAdr, recvbuf);
-//						break;
-//					}
-//				}
-//			}
-//			else if (iResult == 0)
-//			{
-//				printf("Connection with client closed.\n");
-//				closesocket(socket);
-//			}
-//			else
-//			{
-//				// there was an error during recv
-//				printf("recv failed with error: %d\n", WSAGetLastError());
-//				closesocket(socket);
-//			}
-//		}
-//		else if (FD_ISSET(socket, &writeSet))
-//		{
-//			const char *messageToSend = "OK.";
-//			iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
-//			if (iResult == SOCKET_ERROR)
-//			{
-//				printf("send failed with error: %d\n", WSAGetLastError());
-//				closesocket(socket);
-//				WSACleanup();
-//				return 1;
-//			}
-//
-//			printf("Server bytes Sent: %ld\n", iResult);
-//			printf("Wait 2 sec . . .\n");
-//			Sleep(2000);
-//		}
-//	}
-//}
+SOCKET SetListenSocket(PCSTR port) {
+	SOCKET listenSocket = INVALID_SOCKET;
+
+	if (InitializeWindowsSockets() == false)
+	{
+		// we won't log anything since it will be logged
+		// by InitializeWindowsSockets() function
+		return 1;
+	}
+
+	// Prepare address information structures
+	addrinfo *resultingAddress = NULL;
+	addrinfo hints;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;       // IPv4 address
+	hints.ai_socktype = SOCK_STREAM; // Provide reliable data streaming
+	hints.ai_protocol = IPPROTO_TCP; // Use TCP protocol
+	hints.ai_flags = AI_PASSIVE;     // 
+
+	// Resolve the server address and port
+	int iResult = getaddrinfo(NULL, port, &hints, &resultingAddress);
+	if (iResult != 0)
+	{
+		printf("getaddrinfo failed with error: %d\n", iResult);
+		WSACleanup();
+		return 1;
+	}
+
+	// Create a SOCKET for connecting to server
+	listenSocket = socket(AF_INET,      // IPv4 address famly
+		SOCK_STREAM,  // stream socket
+		IPPROTO_TCP); // TCP
+
+	if (listenSocket == INVALID_SOCKET)
+	{
+		printf("socket failed with error: %ld\n", WSAGetLastError());
+		freeaddrinfo(resultingAddress);
+		WSACleanup();
+		return 1;
+	}
+
+	// Setup the TCP listening socket - bind port number and local address 
+	// to socket
+	iResult = bind(listenSocket, resultingAddress->ai_addr, (int)resultingAddress->ai_addrlen);
+	if (iResult == SOCKET_ERROR)
+	{
+		printf("bind failed with error: %d\n", WSAGetLastError());
+		freeaddrinfo(resultingAddress);
+		closesocket(listenSocket);
+		WSACleanup();
+		return 1;
+	}
+
+	// Set socket at nonbloking mode
+	SetNonblocking(&listenSocket);
+
+	// Since we don't need resultingAddress any more, free it
+	freeaddrinfo(resultingAddress);
+
+	// Set listenSocket in listening mode
+	iResult = listen(listenSocket, SOMAXCONN);
+	if (iResult == SOCKET_ERROR)
+	{
+		printf("listen failed with error: %d\n", WSAGetLastError());
+		closesocket(listenSocket);
+		WSACleanup();
+		return 1;
+	}
+
+	return listenSocket;
+}
