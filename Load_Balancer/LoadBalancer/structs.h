@@ -11,6 +11,6 @@ typedef struct Client {
 typedef struct Worker {
 	int id;
 	int counter;
-	//HANDLE thread;
+	HANDLE thread;
 	SOCKET *socket;
 }Worker;
