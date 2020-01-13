@@ -41,5 +41,8 @@
     <ClInclude Include="workerList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ringBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -13,6 +13,7 @@
 #include "clientList.h"
 #include "workerList.h"
 #include "threadFuncs.h"
+#include "ringBuffer.h"
 
 int globalIdClient = 123456;
 int globalIdWorker = 1;
@@ -22,7 +23,13 @@ int indexWorker = 0; // index counter for workers
 Node *headClients = NULL; // list of clients
 NodeW *headWorkers = NULL; // list of workers
 
+int capacityBuffer = 100;
+Queue* primaryQueue = NULL;
+Queue* tempQueue = NULL;
+Queue* secondaryQueue = NULL;
+
 int main(void) {
+	primaryQueue = CreateQueue(capacityBuffer);
 	// Socket used for listening for new clients 
 	SOCKET listenSocket = SetListenSocket(DEFAULT_PORT);
 

@@ -3,6 +3,8 @@
 extern Node *headClients;
 extern NodeW *headWorkers;
 
+extern Queue* primaryQueue;
+
 DWORD WINAPI myThreadFun(void *vargp) {
 	SOCKET socket = *(SOCKET*)vargp;
 	char recvbuf[DEFAULT_BUFLEN];
@@ -31,6 +33,18 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
 			}
 			iResult = recv(socket, recvbuf, DEFAULT_BUFLEN, 0);
+
+
+			Enqueue(primaryQueue, recvbuf);
+
+			/*printf("Queue: size = %d, capacity = %d, front: %d, rear = %d \n\n", primaryQueue->size, primaryQueue->capacity, primaryQueue->front, primaryQueue->rear);
+			for (int i = 0; i < primaryQueue->capacity; i++)
+			{
+				printf("%c",primaryQueue->array[i]);
+			}
+			printf("END\n\n");*/
+
+
 			if (iResult > 0)
 			{
 				Node *temp = headClients;
@@ -126,14 +140,39 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 		}
 		else if (FD_ISSET(socket, &writeSet))
 		{
-			const char *messageToSend = "OK.";
-			iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
-			if (iResult == SOCKET_ERROR) {
-				printf("send failed with error: %d\n", WSAGetLastError());
-				closesocket(socket);
-				WSACleanup();
-				return 1;
+			if (primaryQueue->size != 0) {
+				char* deq = Dequeue(primaryQueue);
+
+				char strlenMessageString[4];
+
+				for (int i = 0; i < 4; i++)
+				{
+					strlenMessageString[i] = deq[i];
+					//queue->front = (queue->front + 1) % queue->capacity;
+				}
+				int strlenMessageInt = *(int*)strlenMessageString;
+
+				iResult = send(socket, deq, strlenMessageInt + 5, 0);
+				if (iResult == SOCKET_ERROR) {
+					printf("send failed with error: %d\n", WSAGetLastError());
+					closesocket(socket);
+					WSACleanup();
+					return 1;
+				}
 			}
+			else {
+				const char *messageToSend = "OK.";
+				iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
+				if (iResult == SOCKET_ERROR) {
+					printf("send failed with error: %d\n", WSAGetLastError());
+					closesocket(socket);
+					WSACleanup();
+					return 1;
+				}
+			}
+
+			
+			Sleep(3000);
 		}
 	}
 }
