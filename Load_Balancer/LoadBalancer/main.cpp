@@ -17,7 +17,8 @@
 int globalIdClient = 123456;
 int globalIdWorker = 1;
 
-int index = 0;
+int index = 0; // index counter for clients
+int indexWorker = 0; // index counter for workers
 Node *headClients = NULL; // list of clients
 NodeW *headWorkers = NULL; // list of workers
 
@@ -38,8 +39,8 @@ int main(void) {
 
 	do
 	{
-		struct sockaddr_in clientAddress;
-		int addrlen = sizeof(clientAddress);
+		struct sockaddr_in address;
+		int addrlen = sizeof(address);
 
 		timeval timeVal;
 		timeVal.tv_sec = 1;
@@ -49,6 +50,7 @@ int main(void) {
 		FD_ZERO(&set);
 
 		FD_SET(listenSocket, &set);
+		FD_SET(listenSocketWorker, &set);
 
 		iResult = select(0, &set, NULL, NULL, &timeVal);
 		if (iResult == SOCKET_ERROR) {
@@ -60,7 +62,7 @@ int main(void) {
 		}
 		else if (FD_ISSET(listenSocket, &set)) {
 			Client *newClient = (Client*)malloc(sizeof(Client));
-			newClient->acceptedSocket = accept(listenSocket, (struct sockaddr *)&clientAddress, &addrlen);
+			newClient->acceptedSocket = accept(listenSocket, (struct sockaddr *)&address, &addrlen);
 			if (newClient->acceptedSocket == INVALID_SOCKET)
 			{
 				printf("accept failed with error: %d\n", WSAGetLastError());
@@ -69,15 +71,15 @@ int main(void) {
 				return 1;
 			}
 			char *clientip = new char[20];
-			strcpy(clientip, inet_ntoa(clientAddress.sin_addr));
-			printf("Client port: %d, IP address: %s is accepted\n", clientAddress.sin_port, clientip);
+			strcpy(clientip, inet_ntoa(address.sin_addr));
+			printf("Client port: %d, IP address: %s is accepted\n", address.sin_port, clientip);
 
 			DWORD threadId;
 
 			newClient->id = globalIdClient++;
 			newClient->acceptedSocket = newClient->acceptedSocket;
 			newClient->ipAdr = clientip;
-			newClient->port = clientAddress.sin_port;
+			newClient->port = address.sin_port;
 			newClient->thread = CreateThread(NULL,
 				0,
 				myThreadFun,
@@ -95,14 +97,50 @@ int main(void) {
 			++index;
 		}
 		else if (FD_ISSET(listenSocketWorker, &set)) {
-			// slicna logika 
-		}
+			Worker *newWorker = (Worker*)malloc(sizeof(Worker));
+			newWorker->acceptedSocket = accept(listenSocketWorker, (struct sockaddr *)&address, &addrlen);
+			if (newWorker->acceptedSocket == INVALID_SOCKET)
+			{
+				printf("accept failed with error: %d\n", WSAGetLastError());
+				closesocket(listenSocketWorker);
+				WSACleanup();
+				return 1;
+			}
+			char *workerip = new char[20];
+			strcpy(workerip, inet_ntoa(address.sin_addr));
+			printf("Client port: %d, IP address: %s is accepted\n", address.sin_port, workerip);
+
+			DWORD threadId;
+
+			newWorker->id = globalIdWorker++;
+			newWorker->acceptedSocket = newWorker->acceptedSocket;
+			newWorker->ipAdr = workerip;
+			newWorker->port = address.sin_port;
+			newWorker->thread = CreateThread(NULL,
+				0,
+				myThreadFunWorker,
+				&newWorker->acceptedSocket,
+				0,
+				&threadId
+			);
+
+			printf("-----------\n\Worker[%d]\nid: %d\nip Address: %s\nport: %d\nthread id: threadId:%d \n\n\tis accepted\n----------------\n"
+				, indexWorker, newWorker->id, newWorker->ipAdr, newWorker->port, threadId);
+
+
+			AddAtEnd(&headWorkers, newWorker);
+
+			++indexWorker;
+		} 
+
 	} while (1);
 
 	// free all nodes from list
 	FreeList(headClients);
+	FreeList(headWorkers);
 	
 	closesocket(listenSocket);
+	closesocket(listenSocketWorker);
 	WSACleanup();
 
 	return 0;

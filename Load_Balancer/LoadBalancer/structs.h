@@ -12,5 +12,12 @@ typedef struct Worker {
 	int id;
 	int counter;
 	HANDLE thread;
-	SOCKET *socket;
+	SOCKET acceptedSocket;
+	int port;
+	char* ipAdr;
 }Worker;
+
+typedef struct MessageForWorker {
+	int length;
+	char *message;
+}MessageForWorker;

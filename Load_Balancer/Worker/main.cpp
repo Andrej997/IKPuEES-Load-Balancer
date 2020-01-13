@@ -60,11 +60,14 @@ int __cdecl main(int argc, char **argv)
 			if (iResult > 0)
 			{
 				printf("Message received from server: %s\n", recvbuf);
-				Message *message = (Message*)malloc(sizeof(Message));
-				message->size = *(int*)recvbuf;
-				strcpy_s(recvbuf + sizeof(int), message->size, message->message);
-				AddAtEnd(&headMessages, message->message, message->size);
-				free(message);
+				if (*(char*)recvbuf != 'O') {
+					Message *message = (Message*)malloc(sizeof(Message));
+					message->size = *(int*)recvbuf;
+					strcpy_s(recvbuf + sizeof(int), message->size, message->message);
+					AddAtEnd(&headMessages, message->message, message->size);
+					free(message);
+				}
+				
 			}
 			else if (iResult == 0)
 			{
@@ -78,7 +81,7 @@ int __cdecl main(int argc, char **argv)
 				printf("recv failed with error: %d\n", WSAGetLastError());
 				closesocket(connectSocket);
 			}
-		}
+		}/*
 		else if (FD_ISSET(connectSocket, &set)) { // send
 			//message = "A";
 			//iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
@@ -97,7 +100,7 @@ int __cdecl main(int argc, char **argv)
 		}
 		else {
 			//nesto
-		}
+		}*/
 	}
 
 	//free(message);
