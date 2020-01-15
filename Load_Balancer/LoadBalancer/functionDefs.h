@@ -4,10 +4,19 @@ bool InitializeWindowsSockets();
 void InitializeSelect(SOCKET *socket);
 void SetNonblocking(SOCKET *socket);
 SOCKET SetListenSocket(PCSTR port);
+
 DWORD WINAPI myThreadFun(void *vargp);
 DWORD WINAPI myThreadFunWorker(void *vargp);
+DWORD WINAPI Dispecher(void *vargp);
+
 bool PrimaryToSecondary();
 void DestroyQueue(Queue*);
 bool Enqueue(Queue* queue, char* message);
 char* Dequeue(Queue* queue);
-DWORD WINAPI Dispecher(void *vargp);
+
+/*
+void AddAtEnd(NodeW **head, Worker *new_data);
+void FreeList(NodeW *head);
+NodeW* SortedMerge(NodeW* a, NodeW* b);
+void FrontBackSplit(NodeW* source, NodeW** frontRef, NodeW** backRef);
+void MergeSortWorkerList(NodeW **head);*/

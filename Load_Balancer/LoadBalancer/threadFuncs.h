@@ -205,6 +205,9 @@ DWORD WINAPI Dispecher(void *vargp) {
 				return 1;
 			}
 			++headWorkers->worker->counter;
+
+			MergeSortWorkerList(&headWorkers);
+
 			Sleep(1000);
 		}
 	}

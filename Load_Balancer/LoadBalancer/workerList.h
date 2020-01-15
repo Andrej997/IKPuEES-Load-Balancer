@@ -34,3 +34,65 @@ void FreeList(NodeW *head) {
 	}
 	return;
 }
+
+NodeW* SortedMerge(NodeW* a, NodeW* b){
+	NodeW* result = NULL;
+
+	// startni slucajevi
+	if (a == NULL)
+		return (b);
+	else if (b == NULL)
+		return (a);
+
+	if (a->worker->counter <= b->worker->counter) {
+		result = a;
+		result->next = SortedMerge(a->next, b);
+	}
+	else {
+		result = b;
+		result->next = SortedMerge(a, b->next);
+	}
+	return (result);
+}
+
+void FrontBackSplit(NodeW* source, NodeW** frontRef, NodeW** backRef){
+	NodeW* fast;
+	NodeW* slow;
+	slow = source;
+	fast = source->next;
+
+	/* Advance 'fast' two nodes, and advance 'slow' one node */
+	while (fast != NULL) {
+		fast = fast->next;
+		if (fast != NULL) {
+			slow = slow->next;
+			fast = fast->next;
+		}
+	}
+
+	/* 'slow' is before the midpoint in the list, so split it in two
+	at that point. */
+	*frontRef = source;
+	*backRef = slow->next;
+	slow->next = NULL;
+}
+
+void MergeSortWorkerList(NodeW **headRef) {
+	NodeW* head = *headRef;
+	NodeW* a;
+	NodeW* b;
+
+	if ((head == NULL) || (head->next == NULL)) {
+		return;
+	}
+
+	// podeli listu na dva dela
+	FrontBackSplit(head, &a, &b);
+
+	// rekurzivno sortiraj podliste
+	MergeSortWorkerList(&a);
+	MergeSortWorkerList(&b);
+
+	// spoji dve podliste
+	*headRef = SortedMerge(a, b); 
+}
