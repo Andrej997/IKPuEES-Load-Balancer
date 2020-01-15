@@ -42,7 +42,7 @@ bool Enqueue(Queue* queue, char* message, int lengthMess) {
 	bool success = false;
 	//int strlenMessage = strlen(message);
 	int strlenMessage = lengthMess;
-	printf("-------Enqueue-------Start\n");
+	//printf("-------Enqueue-------Start\n");
 	if (!IsFull(queue, strlenMessage)) {
 		for (int i = 0; i < 4; i++)
 		{
@@ -85,13 +85,13 @@ bool Enqueue(Queue* queue, char* message, int lengthMess) {
 		}
 		PrimaryToSecondary();
 	}
-	printf("-------Enqueue-------End\n");
+	//printf("-------Enqueue-------End\n");
 
 	return success;
 }
 char* Dequeue(Queue* queue) {
 	char* message;
-	printf("-------Dequeue-------Start\n");
+	//printf("-------Dequeue-------Start\n");
 	if (!IsEmpty(queue)) {
 		char strlenMessageString[4];
 
@@ -119,7 +119,7 @@ char* Dequeue(Queue* queue) {
 			queue->front = (queue->front + 1) % queue->capacity;
 		}
 		queue->size -= strlenMessageInt + sizeof(int);
-		printf("-------Dequeue-------End\n");
+		//printf("-------Dequeue-------End\n");
 
 		return message;
 	}

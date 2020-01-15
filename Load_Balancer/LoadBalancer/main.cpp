@@ -6,6 +6,7 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "5059"
 #define DEFAULT_PORT_WORKER "27016"
+#define MAX_COUNT_SEMAPHORE 10
 
 #include "structs.h"
 #include "functionDefs.h"
@@ -29,8 +30,14 @@ Queue* tempQueue = NULL;
 Queue* secondaryQueue = NULL;
 
 CRITICAL_SECTION CriticalSectionForQueue;
+CRITICAL_SECTION CriticalSectionForOutput;
+HANDLE WriteSemaphore, ReadSemaphore;
 
 int main(void) {
+	WriteSemaphore = CreateSemaphore(0, MAX_COUNT_SEMAPHORE, MAX_COUNT_SEMAPHORE, NULL);
+	ReadSemaphore = CreateSemaphore(0, 0, MAX_COUNT_SEMAPHORE, NULL);
+
+	InitializeCriticalSection(&CriticalSectionForOutput);
 	InitializeCriticalSection(&CriticalSectionForQueue);
 
 	primaryQueue = CreateQueue(capacityBuffer);
@@ -164,8 +171,12 @@ int main(void) {
 	closesocket(listenSocketWorker);
 	WSACleanup();
 
+	CloseHandle(WriteSemaphore);
+	CloseHandle(ReadSemaphore);
+
 	Sleep(2000);
 	DeleteCriticalSection(&CriticalSectionForQueue);
+	DeleteCriticalSection(&CriticalSectionForOutput);
 
 	return 0;
 }

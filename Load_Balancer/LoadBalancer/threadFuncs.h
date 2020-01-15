@@ -5,6 +5,9 @@ extern NodeW *headWorkers;
 
 extern Queue* primaryQueue;
 extern CRITICAL_SECTION CriticalSectionForQueue;
+extern CRITICAL_SECTION CriticalSectionForOutput;
+
+extern HANDLE WriteSemaphore, ReadSemaphore;
 
 DWORD WINAPI myThreadFun(void *vargp) {
 	SOCKET socket = *(SOCKET*)vargp;
@@ -43,7 +46,9 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				Node *temp = headClients;
 				while (temp != NULL) {
 					if (socket == temp->client->acceptedSocket) {
+						EnterCriticalSection(&CriticalSectionForOutput);
 						printf("Thread id = %d. Client id: %d, port: %d, IP address: %s. Message: %s\n", GetCurrentThreadId(), temp->client->id, temp->client->port, temp->client->ipAdr, recvbuf);
+						LeaveCriticalSection(&CriticalSectionForOutput);
 						break;
 					}
 					temp = temp->next;
@@ -93,20 +98,33 @@ DWORD WINAPI myThreadFun(void *vargp) {
 					}
 					
 				}
-				
+				EnterCriticalSection(&CriticalSectionForOutput);
+				printf("Strlen(recvBuffer) = %d\n", strlen(recvbuf));
+				LeaveCriticalSection(&CriticalSectionForOutput);
+
+				WaitForSingleObject(WriteSemaphore, INFINITE);
 
 				EnterCriticalSection(&CriticalSectionForQueue);
-				printf("Strlen(recvBuffer) = %d\n", strlen(recvbuf));
 
 				//Enqueue(primaryQueue, recvbuf);
 				Enqueue(primaryQueue, message, lengthMessage);
+
+				LeaveCriticalSection(&CriticalSectionForQueue);
+
+				ReleaseSemaphore(ReadSemaphore, 1, NULL);
+
+				EnterCriticalSection(&CriticalSectionForOutput);
+				EnterCriticalSection(&CriticalSectionForQueue);
+
 				printf("Queue: size = %d, capacity = %d, front: %d, rear = %d \n\nSTART\n", primaryQueue->size, primaryQueue->capacity, primaryQueue->front, primaryQueue->rear);
 				for (int i = 0; i < primaryQueue->capacity; i++)
 				{
 					printf("%c", primaryQueue->array[i]);
 				}
 				printf("\nEND\n\n");
+
 				LeaveCriticalSection(&CriticalSectionForQueue);
+				LeaveCriticalSection(&CriticalSectionForOutput);
 
 				free(message);
 			}
@@ -122,7 +140,7 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				closesocket(socket);
 			}
 		}
-		else if (FD_ISSET(socket, &writeSet))
+		/*else if (FD_ISSET(socket, &writeSet))
 		{
 			const char *messageToSend = "OK.";
 			iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
@@ -137,7 +155,7 @@ DWORD WINAPI myThreadFun(void *vargp) {
 			printf("Server bytes Sent: %ld (Message: %s)\n", iResult, messageToSend);
 			printf("Wait 2 sec . . .\n");
 			Sleep(2000);
-		}
+		}*/
 	}
 } 
 
@@ -174,7 +192,10 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 				Node *temp = headClients;
 				while (temp != NULL) {
 					if (socket == temp->client->acceptedSocket) {
+						EnterCriticalSection(&CriticalSectionForOutput);
 						printf("Thread id = %d. Client id: %d, port: %d, IP address: %s. Message: %s\n", GetCurrentThreadId(), temp->client->id, temp->client->port, temp->client->ipAdr, recvbuf);
+						LeaveCriticalSection(&CriticalSectionForOutput);
+						
 						break;
 					}
 					temp = temp->next;
@@ -210,9 +231,21 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 DWORD WINAPI Dispecher(void *vargp) {
 	while (true) {
 		if (primaryQueue->size != 0 && headWorkers != NULL) {
+
+			bool isEmpty = true;
+
+			WaitForSingleObject(ReadSemaphore, INFINITE);
+
 			EnterCriticalSection(&CriticalSectionForQueue);
 			char* deq = Dequeue(primaryQueue);
+			//if (primaryQueue->size != 0)
+				//isEmpty = false;
 			LeaveCriticalSection(&CriticalSectionForQueue);
+
+			//if (isEmpty)
+				ReleaseSemaphore(WriteSemaphore, 1, NULL);
+			//else
+				//ReleaseSemaphore(ReadSemaphore, 1, NULL);
 
 			char strlenMessageString[4];
 
