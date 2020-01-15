@@ -48,6 +48,15 @@ int main(void) {
 
 	printf("Server initialized, waiting for clients.\n");
 
+	DWORD dispecherId;
+	HANDLE dispecher = CreateThread(NULL,
+		0,
+		Dispecher,
+		NULL,
+		0,
+		&dispecherId
+	);
+
 	do
 	{
 		struct sockaddr_in address;
@@ -124,6 +133,7 @@ int main(void) {
 			DWORD threadId;
 
 			newWorker->id = globalIdWorker++;
+			newWorker->counter = 0;
 			newWorker->acceptedSocket = newWorker->acceptedSocket;
 			newWorker->ipAdr = workerip;
 			newWorker->port = address.sin_port;
@@ -135,7 +145,7 @@ int main(void) {
 				&threadId
 			);
 
-			printf("-----------\n\Worker[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\n\tis accepted\n----------------\n"
+			printf("-----------\nWorker[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\n\tis accepted\n----------------\n"
 				, indexWorker, newWorker->id, newWorker->ipAdr, newWorker->port, threadId);
 
 
