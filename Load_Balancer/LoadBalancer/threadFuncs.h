@@ -194,42 +194,44 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 		}
 		else if (FD_ISSET(socket, &writeSet))
 		{
-			if (primaryQueue->size != 0) {
-
-				EnterCriticalSection(&CriticalSectionForQueue);
-				char* deq = Dequeue(primaryQueue);
-				LeaveCriticalSection(&CriticalSectionForQueue);
-
-				char strlenMessageString[4];
-
-				for (int i = 0; i < 4; i++)
-				{
-					strlenMessageString[i] = deq[i];
-					//queue->front = (queue->front + 1) % queue->capacity;
-				}
-				int strlenMessageInt = *(int*)strlenMessageString;
-
-				iResult = send(socket, deq, strlenMessageInt + 5, 0);
-				if (iResult == SOCKET_ERROR) {
-					printf("send failed with error: %d\n", WSAGetLastError());
-					closesocket(socket);
-					WSACleanup();
-					return 1;
-				}
+			const char *messageToSend = "OK.";
+			iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
+			if (iResult == SOCKET_ERROR) {
+				printf("send failed with error: %d\n", WSAGetLastError());
+				closesocket(socket);
+				WSACleanup();
+				return 1;
 			}
-			else {
-				const char *messageToSend = "OK.";
-				iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
-				if (iResult == SOCKET_ERROR) {
-					printf("send failed with error: %d\n", WSAGetLastError());
-					closesocket(socket);
-					WSACleanup();
-					return 1;
-				}
-			}
-
-			
 			Sleep(3000);
 		}
 	}
+}
+
+DWORD WINAPI Dispecher(void *vargp) {
+	while (true) {
+		if (primaryQueue->size != 0 && headWorkers != NULL) {
+			EnterCriticalSection(&CriticalSectionForQueue);
+			char* deq = Dequeue(primaryQueue);
+			LeaveCriticalSection(&CriticalSectionForQueue);
+
+			char strlenMessageString[4];
+
+			for (int i = 0; i < 4; i++)
+			{
+				strlenMessageString[i] = deq[i];
+			}
+			int strlenMessageInt = *(int*)strlenMessageString;
+
+			int iResult = send(headWorkers->worker->acceptedSocket, deq, strlenMessageInt + 5, 0);
+			if (iResult == SOCKET_ERROR) {
+				printf("send failed with error: %d\n", WSAGetLastError());
+				closesocket(headWorkers->worker->acceptedSocket);
+				WSACleanup();
+				return 1;
+			}
+			++headWorkers->worker->counter;
+			Sleep(1000);
+		}
+	}
+	return 0;
 }
