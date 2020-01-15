@@ -21,3 +21,11 @@ typedef struct MessageForWorker {
 	int length;
 	char *message;
 }MessageForWorker;
+
+typedef struct Queue {
+	int front;
+	int rear;
+	int size;
+	int capacity;
+	char* array;
+}Queue;

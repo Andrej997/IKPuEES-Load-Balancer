@@ -13,6 +13,7 @@
 #include "clientList.h"
 #include "workerList.h"
 #include "threadFuncs.h"
+#include "ringBuffer.h"
 
 int globalIdClient = 123456;
 int globalIdWorker = 1;
@@ -22,7 +23,17 @@ int indexWorker = 0; // index counter for workers
 Node *headClients = NULL; // list of clients
 NodeW *headWorkers = NULL; // list of workers
 
+int capacityBuffer = 100;
+Queue* primaryQueue = NULL;
+Queue* tempQueue = NULL;
+Queue* secondaryQueue = NULL;
+
+CRITICAL_SECTION CriticalSectionForQueue;
+
 int main(void) {
+	InitializeCriticalSection(&CriticalSectionForQueue);
+
+	primaryQueue = CreateQueue(capacityBuffer);
 	// Socket used for listening for new clients 
 	SOCKET listenSocket = SetListenSocket(DEFAULT_PORT);
 
@@ -57,7 +68,7 @@ int main(void) {
 			printf("select failed with error: %d\n", WSAGetLastError());
 		}
 		else if (iResult == 0) {
-			printf("I'm waiting\n");
+			//printf("I'm waiting\n");
 			continue;
 		}
 		else if (FD_ISSET(listenSocket, &set)) {
@@ -88,7 +99,7 @@ int main(void) {
 				&threadId
 			);
 
-			printf("-----------\n\tClients[%d]\nid: %d\nip Address: %s\nport: %d\nthread id: threadId:%d \n\n\tis accepted\n----------------\n"
+			printf("-----------\n\tClients[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\n\tis accepted\n----------------\n"
 				, index, newClient->id, newClient->ipAdr, newClient->port, threadId);
 
 
@@ -124,7 +135,7 @@ int main(void) {
 				&threadId
 			);
 
-			printf("-----------\n\Worker[%d]\nid: %d\nip Address: %s\nport: %d\nthread id: threadId:%d \n\n\tis accepted\n----------------\n"
+			printf("-----------\n\Worker[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\n\tis accepted\n----------------\n"
 				, indexWorker, newWorker->id, newWorker->ipAdr, newWorker->port, threadId);
 
 
@@ -142,6 +153,9 @@ int main(void) {
 	closesocket(listenSocket);
 	closesocket(listenSocketWorker);
 	WSACleanup();
+
+	Sleep(2000);
+	DeleteCriticalSection(&CriticalSectionForQueue);
 
 	return 0;
 }

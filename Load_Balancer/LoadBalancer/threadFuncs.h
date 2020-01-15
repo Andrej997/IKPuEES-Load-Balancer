@@ -3,6 +3,9 @@
 extern Node *headClients;
 extern NodeW *headWorkers;
 
+extern Queue* primaryQueue;
+extern CRITICAL_SECTION CriticalSectionForQueue;
+
 DWORD WINAPI myThreadFun(void *vargp) {
 	SOCKET socket = *(SOCKET*)vargp;
 	char recvbuf[DEFAULT_BUFLEN];
@@ -31,6 +34,10 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
 			}
 			iResult = recv(socket, recvbuf, DEFAULT_BUFLEN, 0);
+
+			
+
+
 			if (iResult > 0)
 			{
 				Node *temp = headClients;
@@ -41,6 +48,42 @@ DWORD WINAPI myThreadFun(void *vargp) {
 					}
 					temp = temp->next;
 				}
+				/*int idClient = -1;
+				char idClientStr[4];
+				char* ipAddrClient = NULL;
+				int portClient = -1;
+				char portClientStr[4];
+
+				if (temp != NULL) {
+					idClient = temp->client->id;
+					for (int i = 0; i < 4; i++)
+					{
+						idClientStr[i] = ((char*)(&idClient))[i];
+					}
+					ipAddrClient = temp->client->ipAdr;
+					portClient = temp->client->port;
+					for (int i = 0; i < 4; i++)
+					{
+						portClientStr[i] = ((char*)(&portClient))[i];
+					}
+				}
+
+				while (recvbuf)
+				{
+
+				}*/
+
+				EnterCriticalSection(&CriticalSectionForQueue);
+				printf("Strlen(recvBuffer) = %d\n", strlen(recvbuf));
+
+				Enqueue(primaryQueue, recvbuf);
+				printf("Queue: size = %d, capacity = %d, front: %d, rear = %d \n\nSTART\n", primaryQueue->size, primaryQueue->capacity, primaryQueue->front, primaryQueue->rear);
+				for (int i = 0; i < primaryQueue->capacity; i++)
+				{
+					printf("%c", primaryQueue->array[i]);
+				}
+				printf("\nEND\n\n");
+				LeaveCriticalSection(&CriticalSectionForQueue);
 			}
 			else if (iResult == 0)
 			{
@@ -66,7 +109,7 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				return 1;
 			}
 
-			printf("Server bytes Sent: %ld\n", iResult);
+			printf("Server bytes Sent: %ld (Message: %s)\n", iResult, messageToSend);
 			printf("Wait 2 sec . . .\n");
 			Sleep(2000);
 		}
@@ -126,14 +169,42 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 		}
 		else if (FD_ISSET(socket, &writeSet))
 		{
-			const char *messageToSend = "OK.";
-			iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
-			if (iResult == SOCKET_ERROR) {
-				printf("send failed with error: %d\n", WSAGetLastError());
-				closesocket(socket);
-				WSACleanup();
-				return 1;
+			if (primaryQueue->size != 0) {
+
+				EnterCriticalSection(&CriticalSectionForQueue);
+				char* deq = Dequeue(primaryQueue);
+				LeaveCriticalSection(&CriticalSectionForQueue);
+
+				char strlenMessageString[4];
+
+				for (int i = 0; i < 4; i++)
+				{
+					strlenMessageString[i] = deq[i];
+					//queue->front = (queue->front + 1) % queue->capacity;
+				}
+				int strlenMessageInt = *(int*)strlenMessageString;
+
+				iResult = send(socket, deq, strlenMessageInt + 5, 0);
+				if (iResult == SOCKET_ERROR) {
+					printf("send failed with error: %d\n", WSAGetLastError());
+					closesocket(socket);
+					WSACleanup();
+					return 1;
+				}
 			}
+			else {
+				const char *messageToSend = "OK.";
+				iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
+				if (iResult == SOCKET_ERROR) {
+					printf("send failed with error: %d\n", WSAGetLastError());
+					closesocket(socket);
+					WSACleanup();
+					return 1;
+				}
+			}
+
+			
+			Sleep(3000);
 		}
 	}
 }

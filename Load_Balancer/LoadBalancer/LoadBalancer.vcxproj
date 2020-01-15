@@ -117,12 +117,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="threadFunction.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clientList.h" />
     <ClInclude Include="communiocationFuncs.h" />
     <ClInclude Include="functionDefs.h" />
+    <ClInclude Include="ringBuffer.h" />
     <ClInclude Include="workerList.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="threadFuncs.h" />

@@ -18,9 +18,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="threadFunction.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="structs.h">
@@ -39,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="workerList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ringBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

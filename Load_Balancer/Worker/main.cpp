@@ -59,12 +59,26 @@ int __cdecl main(int argc, char **argv)
 			iResult = recv(connectSocket, recvbuf, DEFAULT_BUFLEN, 0);
 			if (iResult > 0)
 			{
-				printf("Message received from server: %s\n", recvbuf);
+				//printf("Message received from server: %s\n", recvbuf);
+				printf("Wait...\n");
+
 				if (*(char*)recvbuf != 'O') {
+					printf("Message received from server( ");
 					Message *message = (Message*)malloc(sizeof(Message));
 					message->size = *(int*)recvbuf;
-					strcpy_s(recvbuf + sizeof(int), message->size, message->message);
-					AddAtEnd(&headMessages, message->message, message->size);
+					message->message = (char*)malloc(message->size);
+
+					
+					//strcpy_s(recvbuf + sizeof(int), message->size, message->message);
+					printf("%d) :", message->size);
+					for (int i = 0; i < message->size; i++)
+					{
+						message->message[i] = recvbuf[i];
+						if(i > 3)
+							printf("%c", message->message[i]);
+					}
+					printf("\n");
+					//AddAtEnd(&headMessages, message->message, message->size);
 					free(message);
 				}
 				
@@ -81,26 +95,26 @@ int __cdecl main(int argc, char **argv)
 				printf("recv failed with error: %d\n", WSAGetLastError());
 				closesocket(connectSocket);
 			}
-		}/*
-		else if (FD_ISSET(connectSocket, &set)) { // send
-			//message = "A";
-			//iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
-
-			if (iResult == SOCKET_ERROR)
-			{
-				printf("send failed with error: %d\n", WSAGetLastError());
-				closesocket(connectSocket);
-				WSACleanup();
-				return 1;
-			}
-
-			printf("Bytes Sent: %ld\n", iResult);
-			//getchar();
-			Sleep(3000);
 		}
+		//else if (FD_ISSET(connectSocket, &set)) { // send
+		//	//message = "A";
+		//	iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
+
+		//	if (iResult == SOCKET_ERROR)
+		//	{
+		//		printf("send failed with error: %d\n", WSAGetLastError());
+		//		closesocket(connectSocket);
+		//		WSACleanup();
+		//		return 1;
+		//	}
+
+		//	printf("Bytes Sent: %ld\n", iResult);
+		//	//getchar();
+		//	Sleep(3000);
+		//}
 		else {
 			//nesto
-		}*/
+		}
 	}
 
 	//free(message);
