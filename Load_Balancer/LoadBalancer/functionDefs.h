@@ -11,7 +11,7 @@ DWORD WINAPI Dispecher(void *vargp);
 
 bool PrimaryToSecondary();
 void DestroyQueue(Queue*);
-bool Enqueue(Queue* queue, char* message);
+bool Enqueue(Queue* queue, char* message, int length);
 char* Dequeue(Queue* queue);
 
 /*
@@ -20,3 +20,4 @@ void FreeList(NodeW *head);
 NodeW* SortedMerge(NodeW* a, NodeW* b);
 void FrontBackSplit(NodeW* source, NodeW** frontRef, NodeW** backRef);
 void MergeSortWorkerList(NodeW **head);*/
+DWORD WINAPI Dispecher(void *vargp);

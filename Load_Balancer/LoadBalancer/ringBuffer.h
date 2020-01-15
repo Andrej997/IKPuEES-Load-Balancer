@@ -38,9 +38,10 @@ bool IsFull(Queue* queue, int strlenMessage) {
 	return false;
 }
 
-bool Enqueue(Queue* queue, char* message) {
+bool Enqueue(Queue* queue, char* message, int lengthMess) {
 	bool success = false;
-	int strlenMessage = strlen(message);
+	//int strlenMessage = strlen(message);
+	int strlenMessage = lengthMess;
 	printf("-------Enqueue-------Start\n");
 	if (!IsFull(queue, strlenMessage)) {
 		for (int i = 0; i < 4; i++)
