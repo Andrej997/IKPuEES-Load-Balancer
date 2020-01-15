@@ -71,10 +71,10 @@ int __cdecl main(int argc, char **argv)
 					
 					//strcpy_s(recvbuf + sizeof(int), message->size, message->message);
 					printf("%d) :", message->size);
-					for (int i = 0; i < message->size; i++)
+					for (int i = 0; i < message->size + 4; i++)
 					{
 						message->message[i] = recvbuf[i];
-						if(i > 3)
+						//if(i > 3)
 							printf("%c", message->message[i]);
 					}
 					printf("\n");

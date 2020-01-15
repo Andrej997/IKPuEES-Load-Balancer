@@ -48,11 +48,12 @@ DWORD WINAPI myThreadFun(void *vargp) {
 					}
 					temp = temp->next;
 				}
-				/*int idClient = -1;
+				int idClient = -1;
 				char idClientStr[4];
 				char* ipAddrClient = NULL;
 				int portClient = -1;
 				char portClientStr[4];
+
 
 				if (temp != NULL) {
 					idClient = temp->client->id;
@@ -67,16 +68,38 @@ DWORD WINAPI myThreadFun(void *vargp) {
 						portClientStr[i] = ((char*)(&portClient))[i];
 					}
 				}
+				int lengthMessage = 4 + 4 + strlen(ipAddrClient) + strlen(recvbuf);
+				char* message = (char*)malloc(lengthMessage);
 
-				while (recvbuf)
+				for (int i = 0, y = 0, z = 0; i < lengthMessage; i++)
 				{
-
-				}*/
+					if (i <= 3) {
+						message[i] = idClientStr[y];
+						y++;
+					}
+					else if (i <= 7) {
+						y = 0;
+						message[i] = portClientStr[z];
+						z++;
+					}
+					else if(i < (8 + strlen(ipAddrClient))) {
+						z = 0;
+						message[i] = ipAddrClient[y];
+						y++;
+					}
+					else {
+						message[i] = recvbuf[z];
+						z++;
+					}
+					
+				}
+				
 
 				EnterCriticalSection(&CriticalSectionForQueue);
 				printf("Strlen(recvBuffer) = %d\n", strlen(recvbuf));
 
-				Enqueue(primaryQueue, recvbuf);
+				//Enqueue(primaryQueue, recvbuf);
+				Enqueue(primaryQueue, message, lengthMessage);
 				printf("Queue: size = %d, capacity = %d, front: %d, rear = %d \n\nSTART\n", primaryQueue->size, primaryQueue->capacity, primaryQueue->front, primaryQueue->rear);
 				for (int i = 0; i < primaryQueue->capacity; i++)
 				{
@@ -84,6 +107,8 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				}
 				printf("\nEND\n\n");
 				LeaveCriticalSection(&CriticalSectionForQueue);
+
+				free(message);
 			}
 			else if (iResult == 0)
 			{

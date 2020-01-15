@@ -7,5 +7,5 @@ SOCKET SetListenSocket(PCSTR port);
 DWORD WINAPI myThreadFun(void *vargp);
 bool PrimaryToSecondary();
 void DestroyQueue(Queue*);
-bool Enqueue(Queue* queue, char* message);
+bool Enqueue(Queue* queue, char* message, int length);
 char* Dequeue(Queue* queue);
