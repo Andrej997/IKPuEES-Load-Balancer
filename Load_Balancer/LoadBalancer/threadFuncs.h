@@ -230,13 +230,13 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 
 DWORD WINAPI Dispecher(void *vargp) {
 	while (true) {
+		EnterCriticalSection(&CriticalSectionForQueue);
 		if (primaryQueue->size != 0 && headWorkers != NULL) {
 
 			bool isEmpty = true;
 
 			WaitForSingleObject(ReadSemaphore, INFINITE);
 
-			EnterCriticalSection(&CriticalSectionForQueue);
 			char* deq = Dequeue(primaryQueue);
 			//if (primaryQueue->size != 0)
 				//isEmpty = false;
@@ -267,6 +267,10 @@ DWORD WINAPI Dispecher(void *vargp) {
 			MergeSortWorkerList(&headWorkers);
 
 			Sleep(1000);
+		}
+		else { 
+			// posto nije ispunjen bio uslov, moze da se napusti kriticna sekcija
+			LeaveCriticalSection(&CriticalSectionForQueue);
 		}
 	}
 	return 0;
