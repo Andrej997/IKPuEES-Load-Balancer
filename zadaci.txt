@@ -1,0 +1,5 @@
+- Nastavak LB-a prilikom prilikom naglog gasenja klijenta i workera.
+- Prilikom gasenja LB-a da se ociste klijenti i workeri i da se normalno ugase.
+- Queue za preraspodelu
+- Worker za preraspodelu
+- algoritam za preraspodelu

@@ -6,7 +6,7 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "5059"
 #define DEFAULT_PORT_WORKER "27016"
-#define MAX_COUNT_SEMAPHORE 10
+#define MAX_COUNT_SEMAPHORE 100
 
 #include "structs.h"
 #include "functionDefs.h"

@@ -84,7 +84,7 @@ int __cdecl main(int argc, char **argv)
 
 			printf("Bytes Sent: %ld\n", iResult);
 			//getchar();
-			Sleep(2000);
+			Sleep(1000);
 		}
 		else {
 			//nesto
