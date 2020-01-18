@@ -21,13 +21,18 @@ int __cdecl main(int argc, char **argv)
 {
 	// socket used to communicate with server
 	SOCKET connectSocket = SetConnectedSocket(DEFAULT_PORT);
+	if (connectSocket == 1) {
+		printf("Press enter to exit");
+		getchar();
+		return 0;
+	}
 	// variable used to store function return value
 	int iResult;
 	char recvbuf[DEFAULT_BUFLEN];
 	// message to send
 	const char *messageToSend = "this is a test";
 	
-	char* message;
+	char* message = nullptr;
 	while (true) {
 
 		FD_SET set;
@@ -68,6 +73,9 @@ int __cdecl main(int argc, char **argv)
 				// there was an error during recv
 				printf("recv failed with error: %d\n", WSAGetLastError());
 				closesocket(connectSocket);
+				printf("LB crashed!\nPress enter to exit");
+				getchar();
+				break;
 			}
 		}
 		else if (FD_ISSET(connectSocket, &set)) { // send

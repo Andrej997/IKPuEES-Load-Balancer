@@ -24,6 +24,29 @@ void AddAtEnd(Node **head, Client *new_data) {
 	return;
 }
 
+void deleteNode(Node **head_ref, int key)
+{
+	Node* temp = *head_ref, *prev = NULL;
+
+	if (temp != NULL && temp->client->acceptedSocket == key) {
+		*head_ref = temp->next;   
+		free(temp);               
+		return;
+	}
+
+	while (temp != NULL && temp->client->acceptedSocket != key) {
+		prev = temp;
+		temp = temp->next;
+	}
+
+	if (temp == NULL) 
+		return;
+
+	prev->next = temp->next;
+
+	free(temp);  
+}
+
 void FreeList(Node *head) {
 	Node *temp;
 	while (head != NULL) {

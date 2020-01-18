@@ -24,6 +24,29 @@ void AddAtEnd(NodeW **head, Worker *new_data) {
 	return;
 }
 
+void deleteNodeW(NodeW **head_ref, int key)
+{
+	NodeW* temp = *head_ref, *prev = NULL;
+
+	if (temp != NULL && temp->worker->acceptedSocket == key) {
+		*head_ref = temp->next;
+		free(temp);
+		return;
+	}
+
+	while (temp != NULL && temp->worker->acceptedSocket != key) {
+		prev = temp;
+		temp = temp->next;
+	}
+
+	if (temp == NULL)
+		return;
+
+	prev->next = temp->next;
+
+	free(temp);
+}
+
 void FreeList(NodeW *head) {
 	NodeW *temp;
 	while (head != NULL) {

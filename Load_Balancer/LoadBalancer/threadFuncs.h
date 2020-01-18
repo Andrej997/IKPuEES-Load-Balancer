@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma region Extern variables
 extern Node *headClients;
 extern NodeW *headWorkers;
 
@@ -8,6 +9,7 @@ extern CRITICAL_SECTION CriticalSectionForQueue;
 extern CRITICAL_SECTION CriticalSectionForOutput;
 
 extern HANDLE WriteSemaphore, ReadSemaphore;
+#pragma endregion
 
 DWORD WINAPI myThreadFun(void *vargp) {
 	SOCKET socket = *(SOCKET*)vargp;
@@ -20,6 +22,7 @@ DWORD WINAPI myThreadFun(void *vargp) {
 	int addrlen = sizeof(clientAddress);
 
 	while (true) {
+		#pragma region SET
 		FD_SET set;
 		FD_ZERO(&set);
 
@@ -28,6 +31,7 @@ DWORD WINAPI myThreadFun(void *vargp) {
 
 		FD_SET(socket, &set);
 		FD_SET(socket, &writeSet);
+		#pragma endregion
 
 		int iResult = select(0, &set, &writeSet, NULL, &timeVal);
 
@@ -37,10 +41,6 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
 			}
 			iResult = recv(socket, recvbuf, DEFAULT_BUFLEN, 0);
-
-			
-
-
 			if (iResult > 0)
 			{
 				Node *temp = headClients;
@@ -132,12 +132,14 @@ DWORD WINAPI myThreadFun(void *vargp) {
 			{
 				printf("Connection with client closed.\n");
 				closesocket(socket);
+				break;
 			}
 			else
 			{
 				// there was an error during recv
 				printf("recv failed with error: %d\n", WSAGetLastError());
 				closesocket(socket);
+				break;
 			}
 		}
 		/*else if (FD_ISSET(socket, &writeSet))
@@ -157,6 +159,8 @@ DWORD WINAPI myThreadFun(void *vargp) {
 			Sleep(2000);
 		}*/
 	}
+	deleteNode(&headClients, socket);
+	return 0;
 } 
 
 DWORD WINAPI myThreadFunWorker(void *vargp) {
@@ -211,6 +215,7 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 				// there was an error during recv
 				printf("recv failed with error: %d\n", WSAGetLastError());
 				closesocket(socket);
+				break;
 			}
 		}
 		else if (FD_ISSET(socket, &writeSet))
@@ -226,6 +231,8 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 			Sleep(3000);
 		}
 	}
+	deleteNodeW(&headWorkers, socket);
+	return 0;
 }
 
 DWORD WINAPI Dispecher(void *vargp) {

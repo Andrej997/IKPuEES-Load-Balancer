@@ -82,6 +82,7 @@ SOCKET SetConnectedSocket(u_short port) {
 		printf("Unable to connect to server.\n");
 		closesocket(connectSocket);
 		WSACleanup();
+		return 1;
 	}
 
 	SetNonblocking(&connectSocket);
