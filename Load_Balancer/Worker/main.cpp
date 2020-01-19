@@ -71,7 +71,7 @@ int __cdecl main(int argc, char **argv)
 				printf("Wait...\n");
 
 				if (*(char*)recvbuf != 'O') {
-					printf("Message received from server( ");
+					printf("Message received from server(");
 					Message *message = (Message*)malloc(sizeof(Message));
 					message->size = *(int*)recvbuf;
 					message->message = (char*)malloc(message->size);
@@ -79,7 +79,7 @@ int __cdecl main(int argc, char **argv)
 					++msgCount;
 					
 					//strcpy_s(recvbuf + sizeof(int), message->size, message->message);
-					printf("%d) : ", message->size);
+					printf("%d) : ", message->size - 17);
 					for (int i = 21; i < message->size + 4; i++)
 					{
 						message->message[i] = recvbuf[i];

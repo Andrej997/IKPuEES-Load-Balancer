@@ -8,8 +8,10 @@ SOCKET SetListenSocket(PCSTR port);
 DWORD WINAPI myThreadFun(void *vargp);
 DWORD WINAPI myThreadFunWorker(void *vargp);
 DWORD WINAPI Dispecher(void *vargp);
+DWORD WINAPI WorkWithQueue(void *vargp);
 
 bool PrimaryToSecondary();
+bool TempToPrimary();
 void DestroyQueue(Queue*);
 bool Enqueue(Queue* queue, char* message, int length);
 char* Dequeue(Queue* queue);

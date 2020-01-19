@@ -1,14 +1,18 @@
 #pragma once
 
+#include "ringBuffer.h"
+
 #pragma region Extern variables
 extern Node *headClients;
 extern NodeW *headWorkers;
 
 extern Queue* primaryQueue;
+extern Queue* tempQueue;
+extern Queue* secondaryQueue;
 extern CRITICAL_SECTION CriticalSectionForQueue;
 extern CRITICAL_SECTION CriticalSectionForOutput;
 
-extern HANDLE WriteSemaphore, ReadSemaphore;
+extern HANDLE WriteSemaphore, WriteSemaphoreTemp, ReadSemaphore, CreateQueueSemaphore;
 #pragma endregion
 
 DWORD WINAPI myThreadFun(void *vargp) {
@@ -98,20 +102,55 @@ DWORD WINAPI myThreadFun(void *vargp) {
 					}
 					
 				}
+				
+				bool more = false;
 				EnterCriticalSection(&CriticalSectionForOutput);
 				printf("Strlen(recvBuffer) = %d\n", strlen(recvbuf));
 				LeaveCriticalSection(&CriticalSectionForOutput);
 
+				//HANDLE semaphores[2] = { WriteSemaphore, WriteSemaphoreTemp };
+
+				//int result = WaitForMultipleObjects(2, semaphores, FALSE, INFINITE);
+
+				//if (result == WAIT_OBJECT_0 + 1) {
+				//	printf("WriteSemaphoreTemp...\n");
+				//	Enqueue(tempQueue, message, lengthMessage);
+				//	ReleaseSemaphore(WriteSemaphoreTemp, 1, NULL);
+				//	printf("TempQueue: size = %d, capacity = %d, front: %d, rear = %d \n\nSTART\n", tempQueue->size, tempQueue->capacity, tempQueue->front, tempQueue->rear);
+				//	for (int i = 0; i < tempQueue->capacity; i++)
+				//	{
+				//		printf("%c", tempQueue->array[i]);
+				//	}
+				//	printf("\nEND\n\n");
+				//}
+				//else if (result == WAIT_OBJECT_0) {
+				//	printf("WriteSemaphore...\n");
+				//	//WaitForSingleObject(WriteSemaphore, INFINITE);
+				//	EnterCriticalSection(&CriticalSectionForQueue);
+				//	Enqueue(primaryQueue, message, lengthMessage);
+				//	if (primaryQueue->size > (primaryQueue->capacity * 0.5))
+				//		more = true;
+				//	LeaveCriticalSection(&CriticalSectionForQueue);
+				//	if (more)
+				//		ReleaseSemaphore(ReadSemaphore, 2, NULL);
+				//	else
+				//		ReleaseSemaphore(ReadSemaphore, 1, NULL);
+				//}
+				//
+
+				
+				//printf("WriteSemaphore...\n");
 				WaitForSingleObject(WriteSemaphore, INFINITE);
-
 				EnterCriticalSection(&CriticalSectionForQueue);
-
-				//Enqueue(primaryQueue, recvbuf);
 				Enqueue(primaryQueue, message, lengthMessage);
-
+				if (primaryQueue->size > (primaryQueue->capacity * 0.5))
+					more = true;
 				LeaveCriticalSection(&CriticalSectionForQueue);
+				if (more)
+					ReleaseSemaphore(ReadSemaphore, 2, NULL);
+				else
+					ReleaseSemaphore(ReadSemaphore, 1, NULL);
 
-				ReleaseSemaphore(ReadSemaphore, 1, NULL);
 
 				EnterCriticalSection(&CriticalSectionForOutput);
 				EnterCriticalSection(&CriticalSectionForQueue);
@@ -279,6 +318,37 @@ DWORD WINAPI Dispecher(void *vargp) {
 			// posto nije ispunjen bio uslov, moze da se napusti kriticna sekcija
 			LeaveCriticalSection(&CriticalSectionForQueue);
 		}
+	}
+	return 0;
+}
+
+DWORD WINAPI WorkWithQueue(void *vargp) {
+	while (true) {
+		//printf("Pre poziva WaitForSingleObject(CreateQueueSemaphore, INFINITE);\n");
+
+		WaitForSingleObject(CreateQueueSemaphore, INFINITE);
+		
+		tempQueue = CreateQueue(primaryQueue->capacity * 0.4); //kreriamo pomocni sa 40% kapaciteta primarnog
+
+		secondaryQueue = CreateQueue(primaryQueue->capacity * 2); //kreiramo novi buffer koji je od starog veci duplo
+		//printf("tempQueue i secondaryQueue su kreirani, zelimo da poruke nastave da se primaju u tempQueue\n");
+		ReleaseSemaphore(CreatedQueueSemaphore, 1, NULL);
+
+		//ReleaseSemaphore(ReadSemaphore, 10, NULL);
+
+		//PrimaryToSecondary();
+
+		//Sleep(10000);
+
+
+		//WaitForSingleObject(WriteSemaphoreTemp, 4000);
+
+		//TempToPrimary();
+
+		//ReleaseSemaphore(WriteSemaphore, 1, NULL);
+
+		
+		Sleep(3000); //svake 3 sekunde proveramo
 	}
 	return 0;
 }

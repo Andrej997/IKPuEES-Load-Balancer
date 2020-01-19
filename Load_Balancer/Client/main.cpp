@@ -19,6 +19,7 @@
 
 int __cdecl main(int argc, char **argv)
 {
+	int sendMessagecount = 0;
 	// socket used to communicate with server
 	SOCKET connectSocket = SetConnectedSocket(DEFAULT_PORT);
 	if (connectSocket == 1) {
@@ -89,10 +90,12 @@ int __cdecl main(int argc, char **argv)
 				WSACleanup();
 				return 1;
 			}
-
-			printf("Bytes Sent: %ld\n", iResult);
+			sendMessagecount++;
+			printf("\n\tSend message count: %ld\n", sendMessagecount);
+			printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
 			//getchar();
 			Sleep(1000);
+			//Sleep(500);
 		}
 		else {
 			//nesto

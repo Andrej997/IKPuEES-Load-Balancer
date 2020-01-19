@@ -31,11 +31,14 @@ Queue* secondaryQueue = NULL;
 
 CRITICAL_SECTION CriticalSectionForQueue;
 CRITICAL_SECTION CriticalSectionForOutput;
-HANDLE WriteSemaphore, ReadSemaphore;
+HANDLE WriteSemaphore, WriteSemaphoreTemp, ReadSemaphore, CreateQueueSemaphore, CreatedQueueSemaphore;
 
 int main(void) {
 	WriteSemaphore = CreateSemaphore(0, MAX_COUNT_SEMAPHORE, MAX_COUNT_SEMAPHORE, NULL);
+	WriteSemaphoreTemp = CreateSemaphore(0, 0, 1, NULL);
 	ReadSemaphore = CreateSemaphore(0, 0, MAX_COUNT_SEMAPHORE, NULL);
+	CreateQueueSemaphore = CreateSemaphore(0, 0, 1, NULL);
+	CreatedQueueSemaphore = CreateSemaphore(0, 0, 1, NULL);
 
 	InitializeCriticalSection(&CriticalSectionForOutput);
 	InitializeCriticalSection(&CriticalSectionForQueue);
@@ -62,6 +65,13 @@ int main(void) {
 		NULL,
 		0,
 		&dispecherId
+	);
+	HANDLE threadForQueue = CreateThread(NULL,
+		0,
+		WorkWithQueue,
+		NULL,
+		0,
+		NULL
 	);
 	
 	do
