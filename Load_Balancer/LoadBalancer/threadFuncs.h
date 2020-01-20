@@ -13,6 +13,7 @@ extern CRITICAL_SECTION CriticalSectionForQueue;
 extern CRITICAL_SECTION CriticalSectionForOutput;
 
 extern HANDLE WriteSemaphore, WriteSemaphoreTemp, ReadSemaphore, CreateQueueSemaphore;
+extern HANDLE ReorganizeSemaphore;
 #pragma endregion
 
 DWORD WINAPI myThreadFun(void *vargp) {
@@ -276,6 +277,9 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 
 DWORD WINAPI Dispecher(void *vargp) {
 	while (true) {
+		// dispecer staje ako se prijavio novi worker
+		//WaitForSingleObject(ReorganizeSemaphore, INFINITE);
+
 		EnterCriticalSection(&CriticalSectionForQueue);
 		if (primaryQueue->size != 0 && headWorkers != NULL) {
 
@@ -354,53 +358,25 @@ DWORD WINAPI WorkWithQueue(void *vargp) {
 }
 
 DWORD WINAPI Redistributioner(void *vargp) {
-	/*while (true) {
-		EnterCriticalSection(&CriticalSectionForQueue);
-		if (primaryQueue->size != 0 && headWorkers != NULL) {
-
-			bool isEmpty = true;
-
-			WaitForSingleObject(ReadSemaphore, INFINITE);
-
-			char* deq = Dequeue(primaryQueue);
-			//if (primaryQueue->size != 0)
-				//isEmpty = false;
-			LeaveCriticalSection(&CriticalSectionForQueue);
-
-			//if (isEmpty)
-			ReleaseSemaphore(WriteSemaphore, 1, NULL);
-			//else
-				//ReleaseSemaphore(ReadSemaphore, 1, NULL);
-
-			char strlenMessageString[4];
-
-			for (int i = 0; i < 4; i++)
-			{
-				strlenMessageString[i] = deq[i];
-			}
-			int strlenMessageInt = *(int*)strlenMessageString;
-
-			int iResult = send(headWorkers->worker->acceptedSocket, deq, strlenMessageInt + 5, 0);
-			if (iResult == SOCKET_ERROR) {
-				printf("send failed with error: %d\n", WSAGetLastError());
-				closesocket(headWorkers->worker->acceptedSocket);
-				WSACleanup();
-				return 1;
-			}
-			++headWorkers->worker->counter;
-
-			MergeSortWorkerList(&headWorkers);
-
-			Sleep(1000);
-		}
-		else {
-			// posto nije ispunjen bio uslov, moze da se napusti kriticna sekcija
-			LeaveCriticalSection(&CriticalSectionForQueue);
-		}
-	} */
-
-	/*while (true) {
-
-	}*/
+	int numOfWorkers = GetNumOfWorkers(headWorkers);
+	int *arr = (int*)vargp;
+	int i = 0;
+	NodeW *temp = headWorkers;
+	union {
+		int num;
+		char byte[4];
+	}myUnion;
+	while (i < numOfWorkers - 1) {
+		char *msg = (char*)malloc(1 /*r*/ + sizeof(int));
+		myUnion.num = arr[i];
+		msg[0] = 'r';
+		memcpy(msg + 1, myUnion.byte, 4);
+		//int temo = *(int*)(msg + 1);
+		//send(temp->worker->acceptedSocket, msg, 6, 0);
+		free(msg);
+		temp = temp->next;
+		++i;
+	}
+	//ReleaseSemaphore(ReorganizeSemaphore, 1, NULL);
 	return 0;
 }

@@ -70,6 +70,10 @@ int __cdecl main(int argc, char **argv)
 				//printf("Message received from server: %s\n", recvbuf);
 				printf("Wait...\n");
 
+				// za reorganizaciju
+				if (*(char*)recvbuf == 'r') {
+
+				}
 				if (*(char*)recvbuf != 'O') {
 					printf("Message received from server(");
 					Message *message = (Message*)malloc(sizeof(Message));

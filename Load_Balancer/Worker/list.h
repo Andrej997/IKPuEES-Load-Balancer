@@ -10,8 +10,8 @@ void AddAtEnd(Node **head, char *new_data /*Message->message*/, size_t data_size
 	Node* new_node = (struct Node*) malloc(sizeof(struct Node));
 
 	new_node->message = (char*)malloc(sizeof(data_size));
-	for (int i = 0; i < data_size; ++i)
-		*(char*)(new_node->message + i) = *(char*)(new_data + i);
+	for (int i = 21, j = 0; i < data_size; ++i, ++j)
+		*(char*)(new_node->message + j) = *(char*)(new_data + i);
 	new_node->next = NULL;
 
 	if (*head == NULL) {
