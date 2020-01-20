@@ -119,3 +119,41 @@ void MergeSortWorkerList(NodeW **headRef) {
 	// spoji dve podliste
 	*headRef = SortedMerge(a, b); 
 }
+
+int GetAllMessages(NodeW *head) {
+	int retVal = 0;
+	NodeW *temp = head;
+	while (temp != NULL) {
+		retVal += temp->worker->counter;
+		temp = temp->next;
+	}
+	return retVal;
+}
+
+int GetNumOfWorkers(NodeW *head) {
+	int retVal = 0;
+	NodeW *temp = head;
+	while (temp != NULL) {
+		++retVal;
+		temp = temp->next;
+	}
+	return retVal;
+}
+
+/*
+	Ulazni param je broj poruka koje treba da sadrzi svaki worker.
+	Izlazni je niz brojava poruka koje Worker treba da posalje.
+*/
+int* GiveMe(int numOfMsgPerWorker, NodeW *head) {
+	int brojWorkera = GetNumOfWorkers(head);
+	int *retArr = (int*)malloc(brojWorkera * sizeof(int));
+	NodeW *temp = head;
+	int i = 0;
+	while (temp != NULL) {
+		int tempMsgPerWorker = temp->worker->counter - numOfMsgPerWorker;
+		*(retArr + i) = tempMsgPerWorker;
+		++i;
+		temp = temp->next;
+	}
+	return retArr;
+}

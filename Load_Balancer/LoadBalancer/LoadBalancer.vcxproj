@@ -122,6 +122,7 @@
     <ClInclude Include="clientList.h" />
     <ClInclude Include="communiocationFuncs.h" />
     <ClInclude Include="functionDefs.h" />
+    <ClInclude Include="redistribution.h" />
     <ClInclude Include="ringBuffer.h" />
     <ClInclude Include="workerList.h" />
     <ClInclude Include="structs.h" />

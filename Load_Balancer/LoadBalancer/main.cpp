@@ -15,6 +15,7 @@
 #include "workerList.h"
 #include "threadFuncs.h"
 #include "ringBuffer.h"
+#include "redistribution.h"
 
 int globalIdClient = 123456;
 int globalIdWorker = 1;
@@ -167,6 +168,7 @@ int main(void) {
 
 
 			AddAtEnd(&headWorkers, newWorker);
+			Redistribution(); // preraspodela podataka
 
 			++indexWorker;
 		} 

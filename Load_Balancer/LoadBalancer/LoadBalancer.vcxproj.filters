@@ -41,5 +41,8 @@
     <ClInclude Include="ringBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="redistribution.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

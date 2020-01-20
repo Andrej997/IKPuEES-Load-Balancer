@@ -352,3 +352,55 @@ DWORD WINAPI WorkWithQueue(void *vargp) {
 	}
 	return 0;
 }
+
+DWORD WINAPI Redistributioner(void *vargp) {
+	/*while (true) {
+		EnterCriticalSection(&CriticalSectionForQueue);
+		if (primaryQueue->size != 0 && headWorkers != NULL) {
+
+			bool isEmpty = true;
+
+			WaitForSingleObject(ReadSemaphore, INFINITE);
+
+			char* deq = Dequeue(primaryQueue);
+			//if (primaryQueue->size != 0)
+				//isEmpty = false;
+			LeaveCriticalSection(&CriticalSectionForQueue);
+
+			//if (isEmpty)
+			ReleaseSemaphore(WriteSemaphore, 1, NULL);
+			//else
+				//ReleaseSemaphore(ReadSemaphore, 1, NULL);
+
+			char strlenMessageString[4];
+
+			for (int i = 0; i < 4; i++)
+			{
+				strlenMessageString[i] = deq[i];
+			}
+			int strlenMessageInt = *(int*)strlenMessageString;
+
+			int iResult = send(headWorkers->worker->acceptedSocket, deq, strlenMessageInt + 5, 0);
+			if (iResult == SOCKET_ERROR) {
+				printf("send failed with error: %d\n", WSAGetLastError());
+				closesocket(headWorkers->worker->acceptedSocket);
+				WSACleanup();
+				return 1;
+			}
+			++headWorkers->worker->counter;
+
+			MergeSortWorkerList(&headWorkers);
+
+			Sleep(1000);
+		}
+		else {
+			// posto nije ispunjen bio uslov, moze da se napusti kriticna sekcija
+			LeaveCriticalSection(&CriticalSectionForQueue);
+		}
+	} */
+
+	/*while (true) {
+
+	}*/
+	return 0;
+}
