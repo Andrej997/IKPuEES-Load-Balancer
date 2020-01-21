@@ -25,7 +25,7 @@ int __cdecl main(int argc, char **argv)
 	// number of messages that this worker contains
 	int msgCount = 0; 
 
-	Node *headMessages;
+	Node *headMessages = NULL;
 
 	// socket used to communicate with server
 	SOCKET connectSocket = SetConnectedSocket(DEFAULT_PORT);
@@ -72,7 +72,10 @@ int __cdecl main(int argc, char **argv)
 
 				// za reorganizaciju
 				if (*(char*)recvbuf == 'r') {
-
+					int numOfMgs = *(int*)recvbuf;
+					//char *reorMessage = ConvertToString(headMessages, numOfMgs);
+					//send(connectSocket, reorMessage, (int)strlen(reorMessage) + 1, 0);
+					//FreeMessages(headMessages, numOfMgs);
 				}
 				if (*(char*)recvbuf != 'O') {
 					printf("Message received from server(");
@@ -93,8 +96,8 @@ int __cdecl main(int argc, char **argv)
 					printf("\n");
 					printf("ClientId : %d\n", message->clientId);
 					printf("\t\tCurrent messages count : %d\n", msgCount);
-					//AddAtEnd(&headMessages, message->message, message->size);
-					free(message);
+					AddAtEnd(&headMessages, message);
+					//free(message);
 				}
 				
 			}

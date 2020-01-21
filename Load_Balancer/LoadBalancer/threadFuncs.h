@@ -370,10 +370,11 @@ DWORD WINAPI Redistributioner(void *vargp) {
 		char *msg = (char*)malloc(1 /*r*/ + sizeof(int));
 		myUnion.num = arr[i];
 		msg[0] = 'r';
-		memcpy(msg + 1, myUnion.byte, 4);
-		//int temo = *(int*)(msg + 1);
+		memcpy(msg + 1, myUnion.byte, 4); // salje se npr. r5 i worker zna da je 'r' za reorganizaciju i '5' broj poruka
 		//send(temp->worker->acceptedSocket, msg, 6, 0);
 		free(msg);
+		//char recvbuf[DEFAULT_BUFLEN];
+		//recv(temp->worker->acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
 		temp = temp->next;
 		++i;
 	}
