@@ -32,7 +32,14 @@ Queue* secondaryQueue = NULL;
 
 CRITICAL_SECTION CriticalSectionForQueue;
 CRITICAL_SECTION CriticalSectionForOutput;
-HANDLE WriteSemaphore, WriteSemaphoreTemp, ReadSemaphore, CreateQueueSemaphore, CreatedQueueSemaphore, ReorganizeSemaphore;
+HANDLE WriteSemaphore, 
+	   WriteSemaphoreTemp, 
+	   ReadSemaphore, 
+	   CreateQueueSemaphore, 
+	   CreatedQueueSemaphore, 
+	   ReorganizeSemaphoreStart,
+	   ReorganizeSemaphoreEnd,
+	   TrueSemaphore;
 
 int main(void) {
 	WriteSemaphore = CreateSemaphore(0, MAX_COUNT_SEMAPHORE, MAX_COUNT_SEMAPHORE, NULL);
@@ -40,7 +47,9 @@ int main(void) {
 	ReadSemaphore = CreateSemaphore(0, 0, MAX_COUNT_SEMAPHORE, NULL);
 	CreateQueueSemaphore = CreateSemaphore(0, 0, 1, NULL);
 	CreatedQueueSemaphore = CreateSemaphore(0, 0, 1, NULL);
-	ReorganizeSemaphore = CreateSemaphore(0, 1, 1, NULL);
+	ReorganizeSemaphoreStart = CreateSemaphore(0, 0, 2, NULL);
+	ReorganizeSemaphoreEnd = CreateSemaphore(0, 0, 1, NULL);
+	TrueSemaphore = CreateSemaphore(0, 1, 1, NULL);
 
 	InitializeCriticalSection(&CriticalSectionForOutput);
 	InitializeCriticalSection(&CriticalSectionForQueue);
@@ -71,6 +80,13 @@ int main(void) {
 	HANDLE threadForQueue = CreateThread(NULL,
 		0,
 		WorkWithQueue,
+		NULL,
+		0,
+		NULL
+	);
+	HANDLE redistributioner = CreateThread(NULL,
+		0,
+		Redistributioner,
 		NULL,
 		0,
 		NULL
@@ -169,7 +185,13 @@ int main(void) {
 
 
 			AddAtEnd(&headWorkers, newWorker);
-			Redistribution(); // preraspodela podataka
+
+			if (indexWorker > 0) {
+				ReleaseSemaphore(ReorganizeSemaphoreStart, 2, NULL);
+				//Redistribution(); // preraspodela podataka
+
+			}
+
 
 			++indexWorker;
 		} 
@@ -186,7 +208,9 @@ int main(void) {
 
 	CloseHandle(WriteSemaphore);
 	CloseHandle(ReadSemaphore);
-	CloseHandle(ReorganizeSemaphore);
+	CloseHandle(ReorganizeSemaphoreStart);
+	CloseHandle(ReorganizeSemaphoreEnd);
+	CloseHandle(TrueSemaphore);
 
 	Sleep(2000);
 	DeleteCriticalSection(&CriticalSectionForQueue);

@@ -43,12 +43,30 @@ char* Convert(Message message) {
 }
 
 char* ConvertToString(Node *head ,int numOfMsg) {
-	char *retVal = (char*)malloc(numOfMsg * sizeof(Message));
 	Node *temp = head;
+	size_t len = 0;
+	int sum = 0;
+	for (int i = 0; i < numOfMsg; i++)
+	{
+		len = snprintf(NULL, len, "%d,%d,%s", temp->message->clientId, temp->message->size, temp->message->message);
+		sum += len; 
+		temp = temp->next;
+	}
+	char *retVal = (char*)malloc(sum);
+	temp = head;
+
+	int pok = 0;
 
 	int i = 0;
 	while (i < numOfMsg) {
-		memcpy(retVal + i * sizeof(Message), Convert(*temp->message), sizeof(Message));
+		
+		size_t len = 0;
+		len = snprintf(NULL, len, "%d,%d,%s", temp->message->clientId, temp->message->size, temp->message->message);
+		
+		//memcpy(retVal + i * sizeof(Message), Convert(*temp->message), sizeof(Message));
+		memcpy(retVal + pok, Convert(*temp->message), len);
+
+		pok += len;
 		temp = temp->next;
 		++i;
 	}

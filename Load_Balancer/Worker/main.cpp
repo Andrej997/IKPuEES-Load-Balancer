@@ -72,12 +72,14 @@ int __cdecl main(int argc, char **argv)
 
 				// za reorganizaciju
 				if (*(char*)recvbuf == 'r') {
-					int numOfMgs = *(int*)recvbuf;
-					//char *reorMessage = ConvertToString(headMessages, numOfMgs);
-					//send(connectSocket, reorMessage, (int)strlen(reorMessage) + 1, 0);
-					//FreeMessages(headMessages, numOfMgs);
+					printf("Worker recv: %s\n", recvbuf);
+					int numOfMgs = *(int*)(recvbuf + 1);
+					char *reorMessage = ConvertToString(headMessages, numOfMgs);
+					send(connectSocket, reorMessage, (int)strlen(reorMessage) + 1, 0);
+					//send(connectSocket, "123", 3 + 1, 0);
+					FreeMessages(headMessages, numOfMgs);
 				}
-				if (*(char*)recvbuf != 'O') {
+				if (*(char*)recvbuf != 'O') {	//aaaaaaaaaa
 					printf("Message received from server(");
 					Message *message = (Message*)malloc(sizeof(Message));
 					message->size = *(int*)recvbuf;

@@ -13,7 +13,7 @@ extern CRITICAL_SECTION CriticalSectionForQueue;
 extern CRITICAL_SECTION CriticalSectionForOutput;
 
 extern HANDLE WriteSemaphore, WriteSemaphoreTemp, ReadSemaphore, CreateQueueSemaphore;
-extern HANDLE ReorganizeSemaphore;
+extern HANDLE ReorganizeSemaphoreStart, ReorganizeSemaphoreEnd, TrueSemaphore;
 #pragma endregion
 
 DWORD WINAPI myThreadFun(void *vargp) {
@@ -260,7 +260,7 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 		}
 		else if (FD_ISSET(socket, &writeSet))
 		{
-			const char *messageToSend = "OK.";
+			/*const char *messageToSend = "OK.";
 			iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
 			if (iResult == SOCKET_ERROR) {
 				printf("send failed with error: %d\n", WSAGetLastError());
@@ -268,7 +268,7 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 				WSACleanup();
 				return 1;
 			}
-			Sleep(3000);
+			Sleep(3000);*/
 		}
 	}
 	deleteNodeW(&headWorkers, socket);
@@ -278,7 +278,21 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 DWORD WINAPI Dispecher(void *vargp) {
 	while (true) {
 		// dispecer staje ako se prijavio novi worker
-		//WaitForSingleObject(ReorganizeSemaphore, INFINITE);
+		//int pom = WaitForSingleObject(ReorganizeSemaphoreEnd, INFINITE);
+
+		HANDLE semaphores[3] = { ReorganizeSemaphoreStart, ReorganizeSemaphoreEnd, TrueSemaphore };
+
+		int result = WaitForMultipleObjects(3, semaphores, FALSE, INFINITE);
+		if (result == WAIT_OBJECT_0) { //zapoceta reorganizacija
+			WaitForSingleObject(ReorganizeSemaphoreEnd, INFINITE);
+			//continue;
+		}
+		else if (result == WAIT_OBJECT_0 + 1) {
+			continue;
+		}
+		else {
+			ReleaseSemaphore(TrueSemaphore, 1, NULL);
+		}
 
 		EnterCriticalSection(&CriticalSectionForQueue);
 		if (primaryQueue->size != 0 && headWorkers != NULL) {
@@ -358,26 +372,53 @@ DWORD WINAPI WorkWithQueue(void *vargp) {
 }
 
 DWORD WINAPI Redistributioner(void *vargp) {
-	int numOfWorkers = GetNumOfWorkers(headWorkers);
-	int *arr = (int*)vargp;
-	int i = 0;
-	NodeW *temp = headWorkers;
-	union {
-		int num;
-		char byte[4];
-	}myUnion;
-	while (i < numOfWorkers - 1) {
-		char *msg = (char*)malloc(1 /*r*/ + sizeof(int));
-		myUnion.num = arr[i];
-		msg[0] = 'r';
-		memcpy(msg + 1, myUnion.byte, 4); // salje se npr. r5 i worker zna da je 'r' za reorganizaciju i '5' broj poruka
-		//send(temp->worker->acceptedSocket, msg, 6, 0);
-		free(msg);
-		//char recvbuf[DEFAULT_BUFLEN];
-		//recv(temp->worker->acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
-		temp = temp->next;
-		++i;
+	while (true) {
+		WaitForSingleObject(ReorganizeSemaphoreStart, INFINITE); //cekamo na semaforu dok ne dobijemo signal da pocnemo reorganizaciju
+
+		int numOfWorkers = GetNumOfWorkers(headWorkers);
+		int numOfMsg = GetAllMessages(headWorkers);
+		int msgPerWorker = numOfMsg / numOfWorkers;
+		int *arrOfMsg = GiveMe(msgPerWorker, headWorkers);
+		//int *arr = (int*)vargp;
+		int i = 0;
+		NodeW *temp = headWorkers;
+		union {
+			int num;
+			char byte[4];
+		}myUnion;
+		while (i < numOfWorkers - 1) {
+			char *msg = (char*)malloc(1 /*r*/ + sizeof(int));
+			myUnion.num = arrOfMsg[i];
+			msg[0] = 'r';
+			memcpy(msg + 1, myUnion.byte, 4); // salje se npr. r5 i worker zna da je 'r' za reorganizaciju i '5' broj poruka
+			int iResult = send(temp->worker->acceptedSocket, msg, 6, 0);
+			if (iResult == SOCKET_ERROR) {
+				EnterCriticalSection(&CriticalSectionForOutput);
+				printf("Redistributioner messsage: send failed with error: %d\n", WSAGetLastError());
+				LeaveCriticalSection(&CriticalSectionForOutput);
+				//closesocket(headWorkers->worker->acceptedSocket);
+				//WSACleanup();
+				//return 1;
+			}
+			free(msg);
+			char recvbuf[DEFAULT_BUFLEN];
+			//Sleep(5900);
+			//iResult = recv(temp->worker->acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
+			//if (iResult == SOCKET_ERROR) {
+			//	EnterCriticalSection(&CriticalSectionForOutput);
+			//	printf("Redistributioner messsage: recv failed with error: %d\n", WSAGetLastError());
+			//	LeaveCriticalSection(&CriticalSectionForOutput);
+			//	//closesocket(headWorkers->worker->acceptedSocket);
+			//	//WSACleanup();
+			//	//return 1;
+			//}
+			temp = temp->next;
+			++i;
+		}
+
+		ReleaseSemaphore(ReorganizeSemaphoreEnd, 1, NULL); //posto smo zavrsili reorganizaciju saljemo signal da moze dispacher da nastavi dalje
+		Sleep(2000);
 	}
-	//ReleaseSemaphore(ReorganizeSemaphore, 1, NULL);
+	
 	return 0;
 }
