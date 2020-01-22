@@ -1,9 +1,12 @@
 #pragma once
 
+
 typedef struct Node {
 	Message *message;
 	struct Node *next;
 }Node;
+
+extern Node *headMessages;
 
 void AddAtEnd(Node **head, Message *message) {
 	Node* new_node = (struct Node*) malloc(sizeof(struct Node));
@@ -24,63 +27,71 @@ void AddAtEnd(Node **head, Message *message) {
 	return;
 }
 
-char* Convert(Message message) {
-	size_t len = 0;
-	len = snprintf(NULL, len, "%d,%d,%s", message.clientId, message.size, message.message);
+//char* Convert(Message message) {
+//	size_t len = 0;
+//	len = snprintf(NULL, len, "%d,%d,%s", message.clientId, message.size, message.message);
+//
+//	char *apstr = (char*)calloc(1, sizeof *apstr * len + 1);
+//	if (!apstr) {
+//		fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
+//	}
+//
+//	if (snprintf(apstr, len + 1, "%d,%d,%s", message.clientId, message.size, message.message) > len + 1)
+//	{
+//		fprintf(stderr, "%s() error: snprintf returned truncated result.\n", __func__);
+//		return NULL;
+//	}
+//
+//	return apstr;
+//}
 
-	char *apstr = (char*)calloc(1, sizeof *apstr * len + 1);
-	if (!apstr) {
-		fprintf(stderr, "%s() error: virtual memory allocation failed.\n", __func__);
-	}
-
-	if (snprintf(apstr, len + 1, "%d,%d,%s", message.clientId, message.size, message.message) > len + 1)
-	{
-		fprintf(stderr, "%s() error: snprintf returned truncated result.\n", __func__);
-		return NULL;
-	}
-
-	return apstr;
-}
-
-char* ConvertToString(Node *head ,int numOfMsg) {
-	Node *temp = head;
-	size_t len = 0;
-	int sum = 0;
-	for (int i = 0; i < numOfMsg; i++)
-	{
-		len = snprintf(NULL, len, "%d,%d,%s", temp->message->clientId, temp->message->size, temp->message->message);
-		sum += len; 
-		temp = temp->next;
-	}
-	char *retVal = (char*)malloc(sum);
-	temp = head;
-
-	int pok = 0;
-
-	int i = 0;
-	while (i < numOfMsg) {
-		
-		size_t len = 0;
-		len = snprintf(NULL, len, "%d,%d,%s", temp->message->clientId, temp->message->size, temp->message->message);
-		
-		//memcpy(retVal + i * sizeof(Message), Convert(*temp->message), sizeof(Message));
-		memcpy(retVal + pok, Convert(*temp->message), len);
-
-		pok += len;
-		temp = temp->next;
-		++i;
-	}
-	return retVal;
-}
-
-void FreeMessages(Node *head, int numOfMsg) {
+void FreeMessages(Node **head, int numOfMsg) {
 	Node *temp;
 	int i = 0;
 	while (i < numOfMsg) {
-		temp = head;
-		head = head->next;
+		temp = headMessages;
+		headMessages = headMessages->next;
 		free(temp);
 		++i;
 	}
 	return;
 }
+
+char* ConvertToString(Node *head ,int numOfMsg, int *a) {
+	Node *temp = head;
+	int len = 0;
+	int len1 = 0;
+	int sum = 0;
+	
+	for (int i = 0; i < numOfMsg; i++)
+	{
+		len1 += temp->message->size;
+		temp = temp->next;
+	}
+	*a = len1;
+	char *retVal = (char*)malloc(len1 + 4 * numOfMsg + 1);
+	retVal[0] = 'r';
+	union {
+		int num;
+		char buf[4];
+	}MyU;
+	MyU.num = numOfMsg;
+	retVal[1] = MyU.buf[0];
+	retVal[2] = MyU.buf[1];
+	retVal[3] = MyU.buf[2];
+	retVal[4] = MyU.buf[3];
+	temp = head;
+
+	memcpy(retVal + 1 + 4, temp->message->message, temp->message->size + 4);
+	int i = 1;
+	int cnt = temp->message->size + 4 + 1 + 4;
+	while (i < numOfMsg) {
+		temp = temp->next;
+		memcpy(retVal + cnt, temp->message->message, temp->message->size + 4);
+		cnt += temp->message->size + 4;
+		++i;
+	}
+	FreeMessages(&head, numOfMsg);
+	return retVal;
+}
+

@@ -142,7 +142,7 @@ int main(void) {
 				0,
 				&threadId
 			);
-
+			
 			printf("-----------\n\tClients[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\n\tis accepted\n----------------\n"
 				, index, newClient->id, newClient->ipAdr, newClient->port, threadId);
 

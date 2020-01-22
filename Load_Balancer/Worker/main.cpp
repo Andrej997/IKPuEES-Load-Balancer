@@ -14,18 +14,23 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 27016
 
+
+
 #include "funcDefinitions.h"
 #include "communicationFuncs.h"
 #include "structs.h"
 #include "list.h"
+Node *headMessages;
 #include "threadFuncs.h"
+
+
 
 int __cdecl main(int argc, char **argv)
 {
 	// number of messages that this worker contains
 	int msgCount = 0; 
 
-	Node *headMessages = NULL;
+	headMessages = NULL;
 
 	// socket used to communicate with server
 	SOCKET connectSocket = SetConnectedSocket(DEFAULT_PORT);
@@ -74,12 +79,26 @@ int __cdecl main(int argc, char **argv)
 				if (*(char*)recvbuf == 'r') {
 					printf("Worker recv: %s\n", recvbuf);
 					int numOfMgs = *(int*)(recvbuf + 1);
-					char *reorMessage = ConvertToString(headMessages, numOfMgs);
-					send(connectSocket, reorMessage, (int)strlen(reorMessage) + 1, 0);
+					int a = 0;
+					
+					char *reorMessage = ConvertToString(headMessages, numOfMgs, &a);
+
+					iResult = select(0, NULL, &set, NULL, &timeVal);
+					if (FD_ISSET(connectSocket, &set)) {
+						//SetNonblocking(&connectSocket);
+						iResult = send(connectSocket, reorMessage, a + 1, 0);
+						if (iResult == SOCKET_ERROR)
+								{
+									printf("send failed with error: %d\n", WSAGetLastError());
+							//		closesocket(connectSocket);
+							//		WSACleanup();
+							//		return 1;
+								}
+					}
 					//send(connectSocket, "123", 3 + 1, 0);
-					FreeMessages(headMessages, numOfMgs);
+					
 				}
-				if (*(char*)recvbuf != 'O') {	//aaaaaaaaaa
+				else if (*(char*)recvbuf != 'O') {	//aaaaaaaaaa
 					printf("Message received from server(");
 					Message *message = (Message*)malloc(sizeof(Message));
 					message->size = *(int*)recvbuf;
@@ -89,11 +108,11 @@ int __cdecl main(int argc, char **argv)
 					
 					//strcpy_s(recvbuf + sizeof(int), message->size, message->message);
 					printf("%d) : ", message->size - 17);
-					for (int i = 21; i < message->size + 4; i++)
+					for (int i = 0; i < message->size + 4; i++)
 					{
 						message->message[i] = recvbuf[i];
-						//if(i > 3)
-						printf("%c", message->message[i]);
+						if(i > 21)
+							printf("%c", message->message[i]);
 					}
 					printf("\n");
 					printf("ClientId : %d\n", message->clientId);
@@ -119,22 +138,22 @@ int __cdecl main(int argc, char **argv)
 				break;
 			}
 		}
-		//else if (FD_ISSET(connectSocket, &set)) { // send
-		//	//message = "A";
-		//	iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
+		else if (FD_ISSET(connectSocket, &set)) { // send
+			//const char* message = "Aa";
+			//iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
 
-		//	if (iResult == SOCKET_ERROR)
-		//	{
-		//		printf("send failed with error: %d\n", WSAGetLastError());
-		//		closesocket(connectSocket);
-		//		WSACleanup();
-		//		return 1;
-		//	}
+			//if (iResult == SOCKET_ERROR)
+			//{
+			//	printf("send failed with error: %d\n", WSAGetLastError());
+			//	closesocket(connectSocket);
+			//	WSACleanup();
+			//	return 1;
+			//}
 
-		//	printf("Bytes Sent: %ld\n", iResult);
-		//	//getchar();
-		//	Sleep(3000);
-		//}
+			//printf("Bytes Sent: %ld\n", iResult);
+			////getchar();
+			//Sleep(3000);
+		}
 		else {
 			//nesto
 		}

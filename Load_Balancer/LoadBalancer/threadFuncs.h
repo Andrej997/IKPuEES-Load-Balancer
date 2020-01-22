@@ -9,8 +9,10 @@ extern NodeW *headWorkers;
 extern Queue* primaryQueue;
 extern Queue* tempQueue;
 extern Queue* secondaryQueue;
+Queue* reorQueue;
 extern CRITICAL_SECTION CriticalSectionForQueue;
 extern CRITICAL_SECTION CriticalSectionForOutput;
+CRITICAL_SECTION CriticalSectionForReorQueue;
 
 extern HANDLE WriteSemaphore, WriteSemaphoreTemp, ReadSemaphore, CreateQueueSemaphore;
 extern HANDLE ReorganizeSemaphoreStart, ReorganizeSemaphoreEnd, TrueSemaphore;
@@ -21,7 +23,7 @@ DWORD WINAPI myThreadFun(void *vargp) {
 	char recvbuf[DEFAULT_BUFLEN];
 
 	timeval timeVal;
-	timeVal.tv_sec = 1;
+	timeVal.tv_sec = 0;
 	timeVal.tv_usec = 0;
 	struct sockaddr_in clientAddress;
 	int addrlen = sizeof(clientAddress);
@@ -231,6 +233,22 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 				printf("ioctlsocket failed with error: %d\n", WSAGetLastError());
 			}
 			iResult = recv(socket, recvbuf, DEFAULT_BUFLEN, 0);
+			if (*(char*)recvbuf == 'r') {
+				printf("MATER MU\n\n\n");
+				int numOfMsg = *(int*)(recvbuf + 1);
+				int i = 0;
+				int msgLength = *(int*)(recvbuf + 5);
+				while (i < numOfMsg) {
+					
+					//EnterCriticalSection(&CriticalSectionForReorQueue);
+					//Enqueue(reorQueue, recvbuf, msgLength);
+					//LeaveCriticalSection(&CriticalSectionForReorQueue);
+					++i;
+					int nextMsg = *(int*)(recvbuf + 9 + msgLength);
+					msgLength += nextMsg;
+				}
+
+			}
 			if (iResult > 0)
 			{
 				Node *temp = headClients;
@@ -372,7 +390,13 @@ DWORD WINAPI WorkWithQueue(void *vargp) {
 }
 
 DWORD WINAPI Redistributioner(void *vargp) {
+	timeval timeVal;
+	timeVal.tv_sec = 1;
+	timeVal.tv_usec = 0;
 	while (true) {
+		FD_SET set;
+		FD_ZERO(&set);
+
 		WaitForSingleObject(ReorganizeSemaphoreStart, INFINITE); //cekamo na semaforu dok ne dobijemo signal da pocnemo reorganizaciju
 
 		int numOfWorkers = GetNumOfWorkers(headWorkers);
@@ -391,7 +415,7 @@ DWORD WINAPI Redistributioner(void *vargp) {
 			myUnion.num = arrOfMsg[i];
 			msg[0] = 'r';
 			memcpy(msg + 1, myUnion.byte, 4); // salje se npr. r5 i worker zna da je 'r' za reorganizaciju i '5' broj poruka
-			int iResult = send(temp->worker->acceptedSocket, msg, 6, 0);
+			int iResult=0;// = send(temp->worker->acceptedSocket, msg, 6, 0);
 			if (iResult == SOCKET_ERROR) {
 				EnterCriticalSection(&CriticalSectionForOutput);
 				printf("Redistributioner messsage: send failed with error: %d\n", WSAGetLastError());
@@ -403,15 +427,32 @@ DWORD WINAPI Redistributioner(void *vargp) {
 			free(msg);
 			char recvbuf[DEFAULT_BUFLEN];
 			//Sleep(5900);
-			//iResult = recv(temp->worker->acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
-			//if (iResult == SOCKET_ERROR) {
-			//	EnterCriticalSection(&CriticalSectionForOutput);
-			//	printf("Redistributioner messsage: recv failed with error: %d\n", WSAGetLastError());
-			//	LeaveCriticalSection(&CriticalSectionForOutput);
-			//	//closesocket(headWorkers->worker->acceptedSocket);
-			//	//WSACleanup();
-			//	//return 1;
+			//Sleep(1000);
+			//while (true) {
+			//	FD_SET set1;
+			//	FD_ZERO(&set1);
+			//	iResult = select(0, &set1, NULL, NULL, &timeVal);
+
+			//	//if (FD_ISSET(temp->worker->acceptedSocket, &set1)) {
+			//		//SetNonblocking(&temp->worker->acceptedSocket);
+			//		iResult = recv(temp->worker->acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
+			//		if (iResult == SOCKET_ERROR) {
+			//			EnterCriticalSection(&CriticalSectionForOutput);
+			//			printf("Redistributioner messsage: recv failed with error: %d\n", WSAGetLastError());
+			//			LeaveCriticalSection(&CriticalSectionForOutput);
+			//			//closesocket(headWorkers->worker->acceptedSocket);
+			//			//WSACleanup();
+			//			//return 1;
+			//		}
+			//		else if (iResult > 0)
+			//		{
+			//			printf("Stiglo je\n\n");
+			//			break;
+			//		}
+			//	//}
 			//}
+			//
+			
 			temp = temp->next;
 			++i;
 		}
