@@ -51,7 +51,7 @@ void FreeList(Node *head) {
 	Node *temp;
 	while (head != NULL) {
 		temp = head;
-		CloseHandle(temp->client->thread);
+		//CloseHandle(temp->client->thread);
 		head = head->next;
 		free(temp);
 	}

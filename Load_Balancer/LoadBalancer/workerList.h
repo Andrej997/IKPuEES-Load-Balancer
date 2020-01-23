@@ -51,11 +51,29 @@ void FreeList(NodeW *head) {
 	NodeW *temp;
 	while (head != NULL) {
 		temp = head;
-		CloseHandle(temp->worker->thread);
+		//CloseHandle(temp->worker->thread);
 		head = head->next;
 		free(temp);
 	}
 	return;
+}
+
+void MoveToEnd(NodeW **head) {
+	if (*head == NULL || (*head)->next == NULL)
+		return;
+
+	NodeW* first = *head;
+	NodeW* last = *head;
+
+	while (last->next != NULL) {
+		last = last->next;
+	}
+
+	*head = first->next;
+
+	first->next = NULL;
+
+	last->next = first;
 }
 
 NodeW* SortedMerge(NodeW* a, NodeW* b){
@@ -157,3 +175,4 @@ int* GiveMe(int numOfMsgPerWorker, NodeW *head) {
 	}
 	return retArr;
 }
+

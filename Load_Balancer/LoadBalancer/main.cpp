@@ -2,6 +2,7 @@
 #include <ws2tcpip.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <conio.h>
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "5059"
@@ -112,7 +113,13 @@ int main(void) {
 			printf("select failed with error: %d\n", WSAGetLastError());
 		}
 		else if (iResult == 0) {
-			//printf("I'm waiting\n");
+			if (_kbhit()) {
+				DeleteAllThreads(headClients, headWorkers);
+				CloseMainThread(dispecher);
+				CloseMainThread(threadForQueue);
+				CloseMainThread(redistributioner);
+				break;
+			}
 			continue;
 		}
 		else if (FD_ISSET(listenSocket, &set)) {
@@ -212,7 +219,7 @@ int main(void) {
 	CloseHandle(ReorganizeSemaphoreEnd);
 	CloseHandle(TrueSemaphore);
 
-	Sleep(2000);
+	//Sleep(2000);
 	DeleteCriticalSection(&CriticalSectionForQueue);
 	DeleteCriticalSection(&CriticalSectionForOutput);
 
