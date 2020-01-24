@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LoadBalancer", "LoadBalance
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Worker", "Worker\Worker.vcxproj", "{B0C673A4-4068-4EB9-BE70-0C53F106CBEB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Common\Common.vcxproj", "{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{B0C673A4-4068-4EB9-BE70-0C53F106CBEB}.Release|x64.Build.0 = Release|x64
 		{B0C673A4-4068-4EB9-BE70-0C53F106CBEB}.Release|x86.ActiveCfg = Release|Win32
 		{B0C673A4-4068-4EB9-BE70-0C53F106CBEB}.Release|x86.Build.0 = Release|Win32
+		{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}.Debug|x64.ActiveCfg = Debug|x64
+		{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}.Debug|x64.Build.0 = Debug|x64
+		{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}.Debug|x86.ActiveCfg = Debug|Win32
+		{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}.Debug|x86.Build.0 = Debug|Win32
+		{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}.Release|x64.ActiveCfg = Release|x64
+		{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}.Release|x64.Build.0 = Release|x64
+		{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}.Release|x86.ActiveCfg = Release|Win32
+		{D74360EA-67A0-43FC-970F-C29B9EC6CDE7}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

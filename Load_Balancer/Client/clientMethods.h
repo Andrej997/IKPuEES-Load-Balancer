@@ -12,3 +12,13 @@ char* GenerateMessage() {
 
 	return message;
 }
+
+char* Generate10BMsg() {
+	int bytes = 10;
+	char* message = (char*)malloc(sizeof(char) * (bytes + 1));
+
+	memset(message, 'a', bytes * sizeof(char));
+	memset(message + bytes, NULL, 1);
+
+	return message;
+}
