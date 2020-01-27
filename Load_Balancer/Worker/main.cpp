@@ -73,7 +73,7 @@ int __cdecl main(int argc, char **argv)
 			if (iResult > 0)
 			{
 				//printf("Message received from server: %s\n", recvbuf);
-				printf("Wait...\n");
+				//printf("Wait...\n");
 
 				// za reorganizaciju
 				if (*(char*)recvbuf == 'r') {
@@ -95,6 +95,18 @@ int __cdecl main(int argc, char **argv)
 							//		return 1;
 								}
 					}
+					printf("Vraceno %d ...\n", numOfMgs);
+					Node* temp = headMessages;
+					int brojPoruka = 0;
+					if (temp != NULL)
+						brojPoruka++;
+					while (temp->next != NULL) {
+						brojPoruka++;
+						//printf("%s\n", temp->message);
+						temp = temp->next;
+					}
+					printf("Ukupan broj poruka:%d\n", brojPoruka);
+
 					//send(connectSocket, "123", 3 + 1, 0);
 					
 				}
@@ -116,8 +128,18 @@ int __cdecl main(int argc, char **argv)
 					}
 					printf("\n");
 					printf("ClientId : %d\n", message->clientId);
-					printf("\t\tCurrent messages count : %d\n", msgCount);
+					//printf("\t\tCurrent messages count : %d\n", msgCount);
 					AddAtEnd(&headMessages, message);
+					Node* temp = headMessages;
+					int brojPoruka = 0;
+					if (temp != NULL)
+						brojPoruka++;
+					while (temp->next != NULL) {
+						brojPoruka++;
+						//printf("%s\n", temp->message);
+						temp = temp->next;
+					}
+					printf("Ukupan broj poruka:%d\n", brojPoruka);
 					//free(message);
 				}
 				

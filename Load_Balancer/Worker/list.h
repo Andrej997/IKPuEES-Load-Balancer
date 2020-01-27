@@ -68,7 +68,7 @@ char* ConvertToString(Node *head ,int numOfMsg, int *a) {
 		len1 += temp->message->size;
 		temp = temp->next;
 	}
-	*a = len1;
+	*a = len1 + 5 + numOfMsg * 4;
 	char *retVal = (char*)malloc(len1 + 4 * numOfMsg + 1);
 	retVal[0] = 'r';
 	union {

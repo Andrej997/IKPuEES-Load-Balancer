@@ -80,22 +80,26 @@ int __cdecl main(int argc, char **argv)
 			}
 		}
 		else if (FD_ISSET(connectSocket, &set)) { // send
-			message = GenerateMessage();
-			iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
+			//message = GenerateMessage();
+			//while (sendMessagecount < 20) {
+				message = Generate10BMsg();
+				iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
 
-			if (iResult == SOCKET_ERROR)
-			{
-				printf("send failed with error: %d\n", WSAGetLastError());
-				closesocket(connectSocket);
-				WSACleanup();
-				return 1;
-			}
-			sendMessagecount++;
-			printf("\n\tSend message count: %ld\n", sendMessagecount);
-			printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
-			//getchar();
-			Sleep(2000);
-			//Sleep(100);
+				if (iResult == SOCKET_ERROR)
+				{
+					printf("send failed with error: %d\n", WSAGetLastError());
+					closesocket(connectSocket);
+					WSACleanup();
+					return 1;
+				}
+				sendMessagecount++;
+				printf("\n\tSend message count: %ld\n", sendMessagecount);
+				printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
+				//getchar();
+				Sleep(2000);
+				//Sleep(500);
+			//}
+			//break;
 		}
 		else {
 			//nesto
