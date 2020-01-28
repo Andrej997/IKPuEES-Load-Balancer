@@ -122,7 +122,6 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				ReleaseSemaphore(ReadSemaphore, 1, NULL);
 				//ReleaseSemaphore(WriteSemaphore, 1, NULL);
 
-
 				/*EnterCriticalSection(&CriticalSectionForOutput);
 				EnterCriticalSection(&CriticalSectionForQueue);
 				printf("Start\n");
@@ -146,8 +145,7 @@ DWORD WINAPI myThreadFun(void *vargp) {
 				break;
 			}
 			else
-			{
-				// there was an error during recv
+			{	// there was an error during recv
 				printf("recv failed with error: %d\n", WSAGetLastError());
 				closesocket(socket);
 				break;
@@ -178,7 +176,7 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 	SOCKET socket = *(SOCKET*)vargp;
 	char recvbuf[DEFAULT_BUFLEN];
 	timeval timeVal;
-	timeVal.tv_sec = 1;
+	timeVal.tv_sec = 0;
 	timeVal.tv_usec = 0;
 	struct sockaddr_in clientAddress;
 	int addrlen = sizeof(clientAddress);
@@ -199,9 +197,17 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 			}
 			iResult = recv(socket, recvbuf, DEFAULT_BUFLEN, 0);
 			if (iResult > 0)
-			{
+			{					// poruka uspesno primljena
+				if (*(char*)recvbuf == 's') {
+					int sucId = *(int*)(recvbuf + 1);
+					Node *clientTemp = FindClient(headClients, sucId);
+					const char* mes = "s";
+					send(clientTemp->client->acceptedSocket, mes, 1 + 1, 0);
+					//free(clientTemp);
+					//free(mes);
+				}
 				if (*(char*)recvbuf == 'r') {
-					printf("MATER MU\n\n\n");
+					//printf("MATER MU\n\n\n");
 					int numOfMsg = *(int*)(recvbuf + 1);
 					int i = 0;
 					int prevMsgLength = 0;
@@ -231,9 +237,7 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 						msgLength += nextMsg;
 						++i;
 					}
-
-					//EnterCriticalSection(&CriticalSectionForReorQueue); //rizicno mesto za kriticnu sekciju jer moramo 
-					//znati kada je otpustiti
+					//EnterCriticalSection(&CriticalSectionForReorQueue); //rizicno mesto za kriticnu sekciju jer moramo znati kada je otpustiti
 					MergeSortWorkerList(&headWorkers);
 					while (reorQueue->size > 0) {
 						//MergeSortWorkerList(&headWorkers);
@@ -258,16 +262,16 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 							WSACleanup();
 							return 1;
 						}
-						//++headWorkers->worker->counter;
 						/*MergeSortWorkerList(&headWorkers);*/
 						++headWorkers->worker->counter;
 					}
 					MergeSortWorkerList(&headWorkers);
-					Sleep(500);
+					DestroyQueue(reorQueue);
+					Sleep(100);
 					ReleaseSemaphore(ReorganizeSemaphoreEnd, 1, NULL);
-
-
-
+				}
+				else if (*(char*)recvbuf == 'O' && *(char*)(recvbuf + 1) == 'K') {
+					printf("recv message for worker: OK\n");
 				}
 				/*NodeW *temp = headWorkers;
 				while (temp != NULL) {
@@ -333,13 +337,18 @@ DWORD WINAPI Dispecher(void *vargp) {
 				//printf("%d\t", primaryQueue->size);
 				WaitForSingleObject(ReadSemaphore, INFINITE);
 
-				char* deq = Dequeue(primaryQueue);
-				LeaveCriticalSection(&CriticalSectionForQueue);
+		EnterCriticalSection(&CriticalSectionForQueue);
+		if (primaryQueue->size != 0 && headWorkers != NULL) {
+			LeaveCriticalSection(&CriticalSectionForQueue);
 
-				//ReleaseSemaphore(ReadSemaphore, 1, NULL);
-				ReleaseSemaphore(WriteSemaphore, 1, NULL);
-				
-				char strlenMessageString[4];
+			WaitForSingleObject(ReadSemaphore, INFINITE);
+
+			EnterCriticalSection(&CriticalSectionForQueue);
+			char* deq = Dequeue(primaryQueue);
+			LeaveCriticalSection(&CriticalSectionForQueue);
+
+			ReleaseSemaphore(ReadSemaphore, 1, NULL);
+			ReleaseSemaphore(WriteSemaphore, 1, NULL);
 
 				for (int i = 0; i < 4; i++) {
 					strlenMessageString[i] = deq[i];
@@ -368,6 +377,12 @@ DWORD WINAPI Dispecher(void *vargp) {
 				// posto nije ispunjen bio uslov, moze da se napusti kriticna sekcija
 				LeaveCriticalSection(&CriticalSectionForQueue);
 			}
+			++headWorkers->worker->counter;
+			//MergeSortWorkerList(&headWorkers);
+			MoveToEnd(&headWorkers);
+		}
+		else {	// posto nije ispunjen bio uslov, moze da se napusti kriticna sekcija
+			LeaveCriticalSection(&CriticalSectionForQueue);
 		}
 	}
 	return 0;
@@ -376,7 +391,6 @@ DWORD WINAPI Dispecher(void *vargp) {
 DWORD WINAPI WorkWithQueue(void *vargp) {
 	while (true) {
 		WaitForSingleObject(CreateQueueSemaphore, INFINITE);
-		
 		//tempQueue = CreateQueue(primaryQueue->capacity * 0.4); //kreriamo pomocni sa 40% kapaciteta primarnog
 		tempQueue = CreateQueue(primaryQueue->capacity); //kreriamo pomocni sa 40% kapaciteta primarnog
 		secondaryQueue = CreateQueue(primaryQueue->capacity * 2); //kreiramo novi buffer koji je od starog veci duplo
@@ -403,7 +417,6 @@ DWORD WINAPI Redistributioner(void *vargp) {
 		int numOfMsg = GetAllMessages(headWorkers);
 		int msgPerWorker = numOfMsg / numOfWorkers;
 		int *arrOfMsg = GiveMe(msgPerWorker, headWorkers);
-		//int *arr = (int*)vargp;
 		int i = 0;
 		NodeW *temp = headWorkers;
 		union {
@@ -417,7 +430,9 @@ DWORD WINAPI Redistributioner(void *vargp) {
 			memcpy(msg + 1, myUnion.byte, 4); // salje se npr. r5 i worker zna da je 'r' za reorganizaciju i '5' broj poruka
 			int iResult = send(temp->worker->acceptedSocket, msg, 6, 0);
 			if (iResult > 0) {
-				printf("Redistributioner send: %c%c%c%c on worker with accepted socket: %d\n", msg[0], msg[1], msg[2], msg[3], temp->worker->acceptedSocket);
+				EnterCriticalSection(&CriticalSectionForOutput);
+				//printf("Redistributioner send: %c%c%c%c on worker with accepted socket: %d\n", msg[0], msg[1], msg[2], msg[3], temp->worker->acceptedSocket);
+				LeaveCriticalSection(&CriticalSectionForOutput);
 			}
 			if (iResult == SOCKET_ERROR) {
 				EnterCriticalSection(&CriticalSectionForOutput);
@@ -425,37 +440,9 @@ DWORD WINAPI Redistributioner(void *vargp) {
 				LeaveCriticalSection(&CriticalSectionForOutput);
 				//closesocket(headWorkers->worker->acceptedSocket);
 				//WSACleanup();
-				//return 1;
+				return 1;
 			}
 			free(msg);
-			char recvbuf[DEFAULT_BUFLEN];
-			//Sleep(5900);
-			//Sleep(1000);
-			//while (true) {
-			//	FD_SET set1;
-			//	FD_ZERO(&set1);
-			//	iResult = select(0, &set1, NULL, NULL, &timeVal);
-
-			//	//if (FD_ISSET(temp->worker->acceptedSocket, &set1)) {
-			//		//SetNonblocking(&temp->worker->acceptedSocket);
-			//		iResult = recv(temp->worker->acceptedSocket, recvbuf, DEFAULT_BUFLEN, 0);
-			//		if (iResult == SOCKET_ERROR) {
-			//			EnterCriticalSection(&CriticalSectionForOutput);
-			//			printf("Redistributioner messsage: recv failed with error: %d\n", WSAGetLastError());
-			//			LeaveCriticalSection(&CriticalSectionForOutput);
-			//			//closesocket(headWorkers->worker->acceptedSocket);
-			//			//WSACleanup();
-			//			//return 1;
-			//		}
-			//		else if (iResult > 0)
-			//		{
-			//			printf("Stiglo je\n\n");
-			//			break;
-			//		}
-			//	//}
-			//}
-			//
-			
 			temp = temp->next;
 			++i;
 		}
@@ -463,7 +450,6 @@ DWORD WINAPI Redistributioner(void *vargp) {
 		//ReleaseSemaphore(ReorganizeSemaphoreEnd, 1, NULL); //posto smo zavrsili reorganizaciju saljemo signal da moze dispacher da nastavi dalje
 		Sleep(2000);
 	}
-	
 	return 0;
 }
 

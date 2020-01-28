@@ -26,5 +26,8 @@
     <ClInclude Include="clientMethods.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="threadFuncs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
