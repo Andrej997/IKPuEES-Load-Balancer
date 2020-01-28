@@ -318,6 +318,7 @@ DWORD WINAPI myThreadFunWorker(void *vargp) {
 
 DWORD WINAPI Dispecher(void *vargp) {
 	while (true) {
+		//int pom = WaitForSingleObject(ReorganizeSemaphoreEnd, INFINITE);
 		HANDLE semaphores[3] = { ReorganizeSemaphoreStart, ReorganizeSemaphoreEnd, TrueSemaphore };
 
 		int result = WaitForMultipleObjects(3, semaphores, FALSE, INFINITE);
@@ -376,7 +377,6 @@ DWORD WINAPI Dispecher(void *vargp) {
 DWORD WINAPI WorkWithQueue(void *vargp) {
 	while (true) {
 		WaitForSingleObject(CreateQueueSemaphore, INFINITE);
-
 		//tempQueue = CreateQueue(primaryQueue->capacity * 0.4); //kreriamo pomocni sa 40% kapaciteta primarnog
 		tempQueue = CreateQueue(primaryQueue->capacity); //kreriamo pomocni sa 40% kapaciteta primarnog
 		secondaryQueue = CreateQueue(primaryQueue->capacity * 2); //kreiramo novi buffer koji je od starog veci duplo
@@ -417,7 +417,7 @@ DWORD WINAPI Redistributioner(void *vargp) {
 			int iResult = send(temp->worker->acceptedSocket, msg, 6, 0);
 			if (iResult > 0) {
 				EnterCriticalSection(&CriticalSectionForOutput);
-				printf("Redistributioner send: %c%c%c%c on worker with accepted socket: %d\n", msg[0], msg[1], msg[2], msg[3], temp->worker->acceptedSocket);
+				//printf("Redistributioner send: %c%c%c%c on worker with accepted socket: %d\n", msg[0], msg[1], msg[2], msg[3], temp->worker->acceptedSocket);
 				LeaveCriticalSection(&CriticalSectionForOutput);
 			}
 			if (iResult == SOCKET_ERROR) {
@@ -432,6 +432,8 @@ DWORD WINAPI Redistributioner(void *vargp) {
 			temp = temp->next;
 			++i;
 		}
+
+		//ReleaseSemaphore(ReorganizeSemaphoreEnd, 1, NULL); //posto smo zavrsili reorganizaciju saljemo signal da moze dispacher da nastavi dalje
 		Sleep(2000);
 	}
 	return 0;
