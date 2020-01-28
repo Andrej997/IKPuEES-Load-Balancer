@@ -16,12 +16,21 @@
 #include "funcDefinitions.h"
 #include "communicationFuncs.h"
 #include "clientMethods.h"
+#include "threadFuncs.h"
 
 int __cdecl main(int argc, char **argv)
 {
+	SOCKET connectSocket = SetConnectedSocket(DEFAULT_PORT);
+	HANDLE recvHandle = CreateThread(NULL,
+		0,
+		myThreadFunForRecv,
+		&connectSocket,
+		0,
+		NULL
+	);
 	int sendMessagecount = 0;
 	// socket used to communicate with server
-	SOCKET connectSocket = SetConnectedSocket(DEFAULT_PORT);
+	
 	if (connectSocket == 1) {
 		printf("Press enter to exit");
 		getchar();
@@ -40,15 +49,11 @@ int __cdecl main(int argc, char **argv)
 		FD_ZERO(&set);
 		FD_SET(connectSocket, &set);
 
-		FD_SET recvset;
-		FD_ZERO(&recvset);
-		FD_SET(connectSocket, &recvset);
-
 		timeval timeVal;
 		timeVal.tv_sec = 0;
 		timeVal.tv_usec = 0;
 
-		int iResult = select(0, &recvset, &set, NULL, &timeVal);
+		int iResult = select(0, NULL, &set, NULL, &timeVal);
 		if (iResult == SOCKET_ERROR) {
 			//error
 			printf("Select failed with error: %d\n", WSAGetLastError());
@@ -57,45 +62,27 @@ int __cdecl main(int argc, char **argv)
 			printf("I'm waiting...\n");
 			continue;
 		}
-		else if (FD_ISSET(connectSocket, &recvset)) { // recv
-			iResult = recv(connectSocket, recvbuf, DEFAULT_BUFLEN, 0);
-			if (iResult > 0)
-			{
-				printf("Message received from server: %s\n", recvbuf);
-			}
-			else if (iResult == 0)
-			{
-				// connection was closed gracefully
-				printf("Connection with server closed.\n");
-				closesocket(connectSocket);
-			}
-			else
-			{
-				// there was an error during recv
-				printf("recv failed with error: %d\n", WSAGetLastError());
-				closesocket(connectSocket);
-				printf("LB crashed!\nPress enter to exit");
-				getchar();
-				break;
-			}
-		}
 		else if (FD_ISSET(connectSocket, &set)) { // send
-			message = GenerateMessage();
-			iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
+			//message = GenerateMessage();
+			//while (sendMessagecount < 20) {
+				message = Generate10BMsg();
+				iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
 
-			if (iResult == SOCKET_ERROR)
-			{
-				printf("send failed with error: %d\n", WSAGetLastError());
-				closesocket(connectSocket);
-				WSACleanup();
-				return 1;
-			}
-			sendMessagecount++;
-			printf("\n\tSend message count: %ld\n", sendMessagecount);
-			printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
-			//getchar();
-			Sleep(2000);
-			//Sleep(100);
+				if (iResult == SOCKET_ERROR)
+				{
+					printf("send failed with error: %d\n", WSAGetLastError());
+					closesocket(connectSocket);
+					WSACleanup();
+					return 1;
+				}
+				sendMessagecount++;
+				printf("\n\tSend message count: %ld\n", sendMessagecount);
+				printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
+				//getchar();
+				Sleep(2000);
+				//Sleep(200);
+			//}
+			//break;
 		}
 		else {
 			//nesto

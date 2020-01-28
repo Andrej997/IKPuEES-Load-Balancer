@@ -57,3 +57,14 @@ void FreeList(Node *head) {
 	}
 	return;
 }
+
+// find client by Id to send him succsess message
+Node* FindClient(Node *head, int clientId) {
+	Node *temp = head;
+	while (temp != NULL) {
+		if (temp->client->id == clientId)
+			break;
+		temp = temp->next;
+	}
+	return temp;
+}

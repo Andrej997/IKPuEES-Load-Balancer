@@ -16,6 +16,7 @@
 #include "workerList.h"
 #include "threadFuncs.h"
 #include "ringBuffer.h"
+//#include "ringBuffer.c"
 #include "redistribution.h"
 
 int globalIdClient = 123456;
@@ -213,15 +214,29 @@ int main(void) {
 	closesocket(listenSocketWorker);
 	WSACleanup();
 
+	Sleep(2000);
+
 	CloseHandle(WriteSemaphore);
+	CloseHandle(WriteSemaphoreTemp);
 	CloseHandle(ReadSemaphore);
+	CloseHandle(CreateQueueSemaphore);
+	CloseHandle(CreatedQueueSemaphore);
 	CloseHandle(ReorganizeSemaphoreStart);
 	CloseHandle(ReorganizeSemaphoreEnd);
-	CloseHandle(TrueSemaphore);
 
-	//Sleep(2000);
+	DestroyQueue(primaryQueue);
+	if (tempQueue != NULL)
+		DestroyQueue(tempQueue);
+	if (secondaryQueue != NULL)
+		DestroyQueue(secondaryQueue);
+
+	Sleep(2000);
 	DeleteCriticalSection(&CriticalSectionForQueue);
 	DeleteCriticalSection(&CriticalSectionForOutput);
+
+	CloseHandle(dispecher);
+	CloseHandle(threadForQueue);
+	CloseHandle(redistributioner);
 
 	return 0;
 }

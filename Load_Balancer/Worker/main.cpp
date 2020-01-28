@@ -14,8 +14,6 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 27016
 
-
-
 #include "funcDefinitions.h"
 #include "communicationFuncs.h"
 #include "structs.h"
@@ -23,13 +21,10 @@
 Node *headMessages;
 #include "threadFuncs.h"
 
-
-
 int __cdecl main(int argc, char **argv)
 {
 	// number of messages that this worker contains
 	int msgCount = 0; 
-
 	headMessages = NULL;
 
 	// socket used to communicate with server
@@ -42,11 +37,9 @@ int __cdecl main(int argc, char **argv)
 	// variable used to store function return value
 	int iResult;
 	char recvbuf[DEFAULT_BUFLEN];
-	// message to send
 	const char *messageToSend = "this is a test";
 
 	while (true) {
-
 		FD_SET set;
 		FD_ZERO(&set);
 		FD_SET(connectSocket, &set);
@@ -56,7 +49,7 @@ int __cdecl main(int argc, char **argv)
 		FD_SET(connectSocket, &recvset);
 
 		timeval timeVal;
-		timeVal.tv_sec = 1;
+		timeVal.tv_sec = 0;
 		timeVal.tv_usec = 0;
 
 		int iResult = select(0, &recvset, &set, NULL, &timeVal);
@@ -73,7 +66,7 @@ int __cdecl main(int argc, char **argv)
 			if (iResult > 0)
 			{
 				//printf("Message received from server: %s\n", recvbuf);
-				printf("Wait...\n");
+				//printf("Wait...\n");
 
 				// za reorganizaciju
 				if (*(char*)recvbuf == 'r') {
@@ -95,8 +88,17 @@ int __cdecl main(int argc, char **argv)
 							//		return 1;
 								}
 					}
-					//send(connectSocket, "123", 3 + 1, 0);
-					
+					printf("Vraceno %d ...\n", numOfMgs);
+					Node* temp = headMessages;
+					int brojPoruka = 0;
+					if (temp != NULL)
+						brojPoruka++;
+					while (temp->next != NULL) {
+						brojPoruka++;
+						//printf("%s\n", temp->message);
+						temp = temp->next;
+					}
+					printf("Ukupan broj poruka:%d\n", brojPoruka);
 				}
 				else if (*(char*)recvbuf != 'O') {	//aaaaaaaaaa
 					printf("Message received from server(");
@@ -106,7 +108,6 @@ int __cdecl main(int argc, char **argv)
 					message->clientId = *(int*)(recvbuf + 4);
 					++msgCount;
 					
-					//strcpy_s(recvbuf + sizeof(int), message->size, message->message);
 					printf("%d) : ", message->size - 17);
 					for (int i = 0; i < message->size + 4; i++)
 					{
@@ -116,9 +117,42 @@ int __cdecl main(int argc, char **argv)
 					}
 					printf("\n");
 					printf("ClientId : %d\n", message->clientId);
-					printf("\t\tCurrent messages count : %d\n", msgCount);
+					//printf("\t\tCurrent messages count : %d\n", msgCount);
 					AddAtEnd(&headMessages, message);
+					Node* temp = headMessages;
+					int brojPoruka = 0;
+					if (temp != NULL)
+						brojPoruka++;
+					while (temp->next != NULL) {
+						brojPoruka++;
+						temp = temp->next;
+					}
+					printf("Ukupan broj poruka:%d\n", brojPoruka);
 					//free(message);
+					union {
+						int id;
+						char buff[4];
+					}MyU;
+					MyU.id = message->clientId;
+					char* messageOK = (char*)malloc(1 + sizeof(int));
+					messageOK[0] = 's';
+					//memset(messageOK + 1, *MyU.buff, 5);
+					messageOK[1] = MyU.buff[0];
+					messageOK[2] = MyU.buff[1];
+					messageOK[3] = MyU.buff[2];
+					messageOK[4] = MyU.buff[3];
+					iResult = send(connectSocket, messageOK, (int)strlen(messageOK) + 1, 0);
+					if (iResult > 0)
+					{
+						printf("Sent OK.\n");
+					}
+					else if (iResult == SOCKET_ERROR)
+					{
+						printf("send failed with error: %d\n", WSAGetLastError());
+						closesocket(connectSocket);
+						WSACleanup();
+						return 1;
+					}
 				}
 				
 			}
@@ -139,20 +173,7 @@ int __cdecl main(int argc, char **argv)
 			}
 		}
 		else if (FD_ISSET(connectSocket, &set)) { // send
-			//const char* message = "Aa";
-			//iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
-
-			//if (iResult == SOCKET_ERROR)
-			//{
-			//	printf("send failed with error: %d\n", WSAGetLastError());
-			//	closesocket(connectSocket);
-			//	WSACleanup();
-			//	return 1;
-			//}
-
-			//printf("Bytes Sent: %ld\n", iResult);
-			////getchar();
-			//Sleep(3000);
+			
 		}
 		else {
 			//nesto

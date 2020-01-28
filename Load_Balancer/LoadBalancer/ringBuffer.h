@@ -2,18 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 extern Queue* primaryQueue;
 extern Queue* tempQueue;
 extern Queue* secondaryQueue;
 
 extern HANDLE CreateQueueSemaphore, CreatedQueueSemaphore, WriteSemaphoreTemp;
 
-//bool PrimaryToSecondary();
-//void DestroyQueue(Queue*);
-
-
+Queue* CreateQueue(int cap);
+bool IsEmpty(Queue* queue);
+bool IsFull(Queue* queue, int strlenMessage);
+bool Enqueue(Queue* queue, char* message, int strlenMessage);
+char* Dequeue(Queue* queue);
+bool AddHeaderLength(Queue* queue, int strlenMess);
+bool AddMessage(Queue* queue, char* message, int strlenMess);
+char* DequeueStrlenMessage(Queue* queue);
+bool PrimaryToSecondary();
+bool TempToPrimary();
+void DestroyQueue(Queue*);
 
 Queue* CreateQueue(int cap) {
 	Queue* queue = (Queue*)malloc(sizeof(Queue));
@@ -24,64 +29,32 @@ Queue* CreateQueue(int cap) {
 	queue->array = (char*)malloc(sizeof(char) * cap);
 	return queue;
 }
-
 bool IsEmpty(Queue* queue) {
 	if (queue->size == 0)
 		return true;
 	return false;
 }
-
 bool IsFull(Queue* queue, int strlenMessage) {
-
 	if ((queue->size + strlenMessage + sizeof(int)) >= (queue->capacity * 0.6) && queue == primaryQueue) 
 		ReleaseSemaphore(CreateQueueSemaphore, 1, NULL);
 	if ((queue->size + strlenMessage + sizeof(int)) >= (queue->capacity * 0.7)) { //upisom poruke bi popunjenost presla 70%, ne dozvoljavamo!
-		//ReleaseSemaphore(CreateQueueSemaphore, 1, NULL);
 		return true;
 	}
 	return false;
 }
-
-bool Enqueue(Queue* queue, char* message, int lengthMess) {
+bool Enqueue(Queue* queue, char* message, int strlenMessage) {
 	bool success = false;
-	//int strlenMessage = strlen(message);
-	int strlenMessage = lengthMess;
-	//printf("-------Enqueue-------Start\n");
 	if (!IsFull(queue, strlenMessage)) {
-		for (int i = 0; i < 4; i++)
-		{
-			queue->array[queue->rear] = ((char*)(&strlenMessage))[i];
-			queue->rear = (queue->rear + 1) % queue->capacity;
-		}
-		for (int i = 0; i < strlenMessage; i++)
-		{
-			queue->array[queue->rear] = message[i];
-			queue->rear = (queue->rear + 1) % queue->capacity;
-		}
+		AddHeaderLength(queue, strlenMessage);
+		AddMessage(queue, message, strlenMessage);
 		queue->size += (strlenMessage + sizeof(int));
 		success = true;
 	}
 	else {
-
-		//secondaryQueue = CreateQueue(queue->capacity * 2); //kreiramo novi buffer koji je od starog veci duplo
-		//mislim da bi ovaj deo kreiranja sekundarnog i prepisivanje u njega trebali da izbacimo u novi thread recimo
-		//kako bi se moglo nastaviti sa prijemom poruka i upisivanjem u privremeni
-		//PrimaryToSecondary();
-		//tempQueue = CreateQueue(queue->capacity);
-		//tempQueue = CreateQueue(queue->capacity * 0.4); //kreiramo privremeni queue koji je 40% kapaciteta glavnog 
-		//i upisujemo pristigle poruke
 		WaitForSingleObject(CreatedQueueSemaphore, INFINITE);
 		if (!IsFull(tempQueue, strlenMessage)) {
-			for (int i = 0; i < 4; i++)
-			{
-				tempQueue->array[tempQueue->rear] = ((char*)(&strlenMessage))[i];
-				tempQueue->rear = (tempQueue->rear + 1) % tempQueue->capacity;
-			}
-			for (int i = 0; i < strlenMessage; i++)
-			{
-				tempQueue->array[tempQueue->rear] = message[i];
-				tempQueue->rear = (tempQueue->rear + 1) % tempQueue->capacity;
-			}
+			AddHeaderLength(tempQueue, strlenMessage);
+			AddMessage(tempQueue, message, strlenMessage);
 			tempQueue->size += (strlenMessage + sizeof(int));
 			success = true;
 		}
@@ -90,19 +63,29 @@ bool Enqueue(Queue* queue, char* message, int lengthMess) {
 		}
 		PrimaryToSecondary();
 		TempToPrimary();
-			//WaitForSingleObject(WriteSemaphoreTemp, INFINITE);
-			//Enqueue(tempQueue, message, lengthMess);
 	}
-	//printf("-------Enqueue-------End\n");
-
 	return success;
+}
+bool AddHeaderLength(Queue* queue, int strlenMess) {
+	for (int i = 0; i < 4; i++)
+	{
+		queue->array[queue->rear] = ((char*)(&strlenMess))[i];
+		queue->rear = (queue->rear + 1) % queue->capacity;
+	}
+	return true;
+}
+bool AddMessage(Queue* queue, char* message, int strlenMess) {
+	for (int i = 0; i < strlenMess; i++)
+	{
+		queue->array[queue->rear] = message[i];
+		queue->rear = (queue->rear + 1) % queue->capacity;
+	}
+	return true;
 }
 char* Dequeue(Queue* queue) {
 	char* message;
-	//printf("-------Dequeue-------Start\n");
 	if (!IsEmpty(queue)) {
 		char strlenMessageString[4];
-
 		for (int i = 0; i < 4; i++)
 		{
 			strlenMessageString[i] = queue->array[queue->front];
@@ -110,16 +93,11 @@ char* Dequeue(Queue* queue) {
 			queue->front = (queue->front + 1) % queue->capacity;
 		}
 		int strlenMessageInt = *(int*)strlenMessageString;
-
 		message = (char*)malloc((sizeof(char) * strlenMessageInt) + 4);
-
-		//strcpy(message, strlenMessageString);
-
 		for (int i = 0; i < 4; i++)
 		{
 			message[i] = strlenMessageString[i];
 		}
-
 		for (int i = 0; i < strlenMessageInt; i++)
 		{
 			message[i + 4] = queue->array[queue->front];
@@ -127,54 +105,34 @@ char* Dequeue(Queue* queue) {
 			queue->front = (queue->front + 1) % queue->capacity;
 		}
 		queue->size -= strlenMessageInt + sizeof(int);
-		//printf("-------Dequeue-------End\n");
-
 		return message;
 	}
-
 	return NULL;
 }
-
 bool PrimaryToSecondary() {
-
 	int secondaryIndex = 0;
-	
+
 	for (int i = 0; i < primaryQueue->size; i++)
 	{
 		secondaryQueue->array[secondaryIndex++] = primaryQueue->array[primaryQueue->front];
 		primaryQueue->front = (primaryQueue->front + 1) % primaryQueue->capacity;
 	}
-	/*for (int i = 0; i < tempQueue->size; i++)
-	{
-		secondaryQueue->array[secondaryIndex++] = tempQueue->array[i];
-	}*/
-
 	secondaryQueue->front = 0;
-	//secondaryQueue->size = primaryQueue->size + tempQueue->size;
 	secondaryQueue->size = primaryQueue->size;
 	secondaryQueue->rear = secondaryQueue->size;
 
 	DestroyQueue(primaryQueue);
-	//DestroyQueue(tempQueue);
-
 	primaryQueue = secondaryQueue;
-	//primaryQueue->array = secondaryQueue->array;
-
-	//DestroyQueue(secondaryQueue);
 	secondaryQueue = NULL;
-
-
 
 	return true;
 }
 bool TempToPrimary() {
 	int secondaryIndex = 0;
-	
 	for (int i = 0; i < tempQueue->size; i++)
 	{
 		primaryQueue->array[primaryQueue->rear++] = tempQueue->array[i];
 	}
-
 	//secondaryQueue->front = 0;
 	//secondaryQueue->size = primaryQueue->size + tempQueue->size;
 	primaryQueue->size = primaryQueue->size + tempQueue->size;
@@ -184,9 +142,7 @@ bool TempToPrimary() {
 
 	return true;
 }
-
 void DestroyQueue(Queue* queue) {
-
 	free(queue->array);
 	free(queue);
 }

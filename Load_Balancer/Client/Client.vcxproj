@@ -121,6 +121,7 @@
     <ClInclude Include="clientMethods.h" />
     <ClInclude Include="communicationFuncs.h" />
     <ClInclude Include="funcDefinitions.h" />
+    <ClInclude Include="threadFuncs.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.vcxproj">
