@@ -115,14 +115,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="list.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="threadFuncs.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="communicationFuncs.h" />
-    <ClInclude Include="funcDefinitions.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="threadFuncs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{d74360ea-67a0-43fc-970f-c29b9ec6cde7}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

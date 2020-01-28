@@ -14,16 +14,11 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 27016
 
-
-
-#include "funcDefinitions.h"
 #include "communicationFuncs.h"
 #include "structs.h"
 #include "list.h"
 Node *headMessages;
 #include "threadFuncs.h"
-
-
 
 int __cdecl main(int argc, char **argv)
 {
@@ -56,7 +51,7 @@ int __cdecl main(int argc, char **argv)
 		FD_SET(connectSocket, &recvset);
 
 		timeval timeVal;
-		timeVal.tv_sec = 1;
+		timeVal.tv_sec = 0;
 		timeVal.tv_usec = 0;
 
 		int iResult = select(0, &recvset, &set, NULL, &timeVal);

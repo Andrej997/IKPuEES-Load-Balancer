@@ -7,7 +7,7 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "5059"
 #define DEFAULT_PORT_WORKER "27016"
-#define MAX_COUNT_SEMAPHORE 10
+#define MAX_COUNT_SEMAPHORE 1000
 
 #include "structs.h"
 #include "functionDefs.h"
@@ -224,6 +224,8 @@ int main(void) {
 	DeleteCriticalSection(&CriticalSectionForQueue);
 	DeleteCriticalSection(&CriticalSectionForOutput);
 
+	DestroyQueue(primaryQueue);
+	//primaryQueue = NULL;
 	return 0;
 }
 

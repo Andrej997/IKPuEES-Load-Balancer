@@ -5,3 +5,4 @@ typedef struct Message {
 	int clientId;
 	char *message;
 }Message;
+

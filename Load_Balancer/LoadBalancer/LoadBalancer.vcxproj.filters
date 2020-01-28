@@ -23,9 +23,6 @@
     <ClInclude Include="structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="communiocationFuncs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="functionDefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

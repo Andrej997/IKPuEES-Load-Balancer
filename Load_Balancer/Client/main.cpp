@@ -13,7 +13,6 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 5059
 
-#include "funcDefinitions.h"
 #include "communicationFuncs.h"
 #include "clientMethods.h"
 
@@ -96,8 +95,8 @@ int __cdecl main(int argc, char **argv)
 				printf("\n\tSend message count: %ld\n", sendMessagecount);
 				printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
 				//getchar();
-				Sleep(2000);
-				//Sleep(500);
+				//Sleep(2000);
+				Sleep(100);
 			//}
 			//break;
 		}
