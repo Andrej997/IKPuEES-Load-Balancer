@@ -1,9 +1,15 @@
 #pragma once
 
-typedef struct NodeW {
-	Worker *worker;
-	struct NodeW *next;
-}NodeW;
+void AddAtEnd(NodeW **head, Worker *new_data);
+void deleteNodeW(NodeW **head_ref, int key);
+void FreeList(NodeW *head);
+void MoveToEnd(NodeW **head);
+NodeW* SortedMerge(NodeW* a, NodeW* b);
+void FrontBackSplit(NodeW* source, NodeW** frontRef, NodeW** backRef);
+void MergeSortWorkerList(NodeW **head);
+int GetAllMessages(NodeW *head);
+int GetNumOfWorkers(NodeW *head);
+int* GiveMe(int numOfMsgPerWorker, NodeW *head);
 
 void AddAtEnd(NodeW **head, Worker *new_data) {
 	NodeW* new_node = (struct NodeW*) malloc(sizeof(struct NodeW));
@@ -158,10 +164,8 @@ int GetNumOfWorkers(NodeW *head) {
 	return retVal;
 }
 
-/*
-	Ulazni param je broj poruka koje treba da sadrzi svaki worker.
-	Izlazni je niz brojava poruka koje Worker treba da posalje.
-*/
+///Ulazni param je broj poruka koje treba da sadrzi svaki worker.
+///Izlazni je niz brojava poruka koje Worker treba da posalje.
 int* GiveMe(int numOfMsgPerWorker, NodeW *head) {
 	int brojWorkera = GetNumOfWorkers(head);
 	int *retArr = (int*)malloc(brojWorkera * sizeof(int));

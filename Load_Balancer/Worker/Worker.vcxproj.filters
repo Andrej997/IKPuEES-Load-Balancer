@@ -21,9 +21,6 @@
     <ClCompile Include="list.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="threadFuncs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="list.h">
@@ -32,7 +29,7 @@
     <ClInclude Include="structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="threadFuncs.h">
+    <ClInclude Include="workerToLoadBalancer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

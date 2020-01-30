@@ -6,3 +6,8 @@ typedef struct Message {
 	char *message;
 }Message;
 
+typedef struct Node {
+	Message *message;
+	struct Node *next;
+}Node;
+

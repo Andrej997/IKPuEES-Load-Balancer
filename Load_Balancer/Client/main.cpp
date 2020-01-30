@@ -2,6 +2,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 #define WIN32_LEAN_AND_MEAN
 
+#pragma region IncludeLibrary
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -9,61 +10,106 @@
 #include <stdio.h>
 #include <conio.h>
 #include <time.h>
-
+#pragma endregion
+#pragma region DefaultValue
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 5059
-
+#pragma endregion
+#pragma region IncludeHeaderFiles
 #include "communicationFuncs.h"
 #include "clientMethods.h"
-#include "threadFuncs.h"
+#include "workerToClientOK.h"
+#pragma endregion
 
 int __cdecl main(int argc, char **argv)
 {
-	SOCKET connectSocket = SetConnectedSocket(DEFAULT_PORT);
-	HANDLE recvHandle = CreateThread(NULL,
+	#pragma region InitVariable
+	int sendMessagecount = 0;
+	int iResult = -1; // variable used to store function return value
+	char recvbuf[DEFAULT_BUFLEN];
+	char* message = nullptr;
+	SOCKET connectSocket; // socket used to communicate with server
+	HANDLE recvHandle;
+	#pragma endregion
+	connectSocket = SetConnectedSocket(DEFAULT_PORT);
+	#pragma region CreateThread
+	recvHandle = CreateThread(NULL,
 		0,
-		myThreadFunForRecv,
+		RecvMessageOK,
 		&connectSocket,
 		0,
 		NULL
 	);
-	int sendMessagecount = 0;
-	// socket used to communicate with server
-	
+	#pragma endregion
+
 	if (connectSocket == 1) {
-		printf("Press enter to exit");
+		printf("Press enter to exit...\n");
 		getchar();
 		return 0;
 	}
-	// variable used to store function return value
-	int iResult;
-	char recvbuf[DEFAULT_BUFLEN];
-	// message to send
-	const char *messageToSend = "this is a test";
-	
-	char* message = nullptr;
-	while (true) {
+	printf("Client is started...\nPress enter to exit...\n");
 
+	while (true) {
+		if (_kbhit()) {
+			break;
+		}
+		#pragma region Set
 		FD_SET set;
 		FD_ZERO(&set);
 		FD_SET(connectSocket, &set);
+		#pragma endregion
 
 		timeval timeVal;
 		timeVal.tv_sec = 0;
 		timeVal.tv_usec = 0;
 
-		int iResult = select(0, NULL, &set, NULL, &timeVal);
-		if (iResult == SOCKET_ERROR) {
-			//error
+		iResult = select(0, NULL, &set, NULL, &timeVal);
+		if (iResult == SOCKET_ERROR) {	//error
 			printf("Select failed with error: %d\n", WSAGetLastError());
+			break;
 		}
 		else if (iResult == 0) {
 			printf("I'm waiting...\n");
 			continue;
 		}
 		else if (FD_ISSET(connectSocket, &set)) { // send
-			//message = GenerateMessage();
-			//while (sendMessagecount < 20) {
+			#pragma region SendRandomMessageEvery1000ms
+			message = GenerateMessage();
+			iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
+
+			if (iResult == SOCKET_ERROR)
+			{
+				printf("send failed with error: %d\n", WSAGetLastError());
+				break;
+				//closesocket(connectSocket);
+				//WSACleanup();
+				//return 1;
+			}
+			sendMessagecount++;
+			printf("\n\tSend message count: %ld\n", sendMessagecount);
+			printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
+			Sleep(1000);
+			#pragma endregion
+
+			#pragma region SendRandomMessageEvery100ms
+			/*message = GenerateMessage();
+			iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
+
+			if (iResult == SOCKET_ERROR)
+			{
+				printf("send failed with error: %d\n", WSAGetLastError());
+				closesocket(connectSocket);
+				WSACleanup();
+				return 1;
+			}
+			sendMessagecount++;
+			printf("\n\tSend message count: %ld\n", sendMessagecount);
+			printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
+			Sleep(100);*/
+			#pragma endregion
+
+			#pragma region Send20MessageLength10B
+			/*while (sendMessagecount < 20) {
 				message = Generate10BMsg();
 				iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
 
@@ -77,21 +123,21 @@ int __cdecl main(int argc, char **argv)
 				sendMessagecount++;
 				printf("\n\tSend message count: %ld\n", sendMessagecount);
 				printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
-				//getchar();
-				//Sleep(2000);
 				Sleep(100);
-			//}
-			//break;
-		}
-		else {
-			//nesto
+			}
+			break;*/
+			#pragma endregion
 		}
 	}
-
+	#pragma region Clenup
 	free(message);
-	// cleanup
 	closesocket(connectSocket);
+	CloseHandle(recvHandle);
 	WSACleanup();
-
+	#pragma endregion
+	printf("Client is successfully shutdown...\n");
+	getchar();
 	return 0;
 }
+
+
