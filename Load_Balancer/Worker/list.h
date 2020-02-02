@@ -1,10 +1,5 @@
 #pragma once
 
-typedef struct Node {
-	Message *message;
-	struct Node *next;
-}Node;
-
 extern Node *headMessages;
 
 void AddAtEnd(Node **head, Message *message) {
@@ -17,7 +12,6 @@ void AddAtEnd(Node **head, Message *message) {
 		*head = new_node;
 		return;
 	}
-
 	Node *last = *head;
 	while (last->next != NULL)
 		last = last->next;

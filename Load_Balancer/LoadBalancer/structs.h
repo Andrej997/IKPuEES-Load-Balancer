@@ -29,3 +29,14 @@ typedef struct Queue {
 	int capacity;
 	char* array;
 }Queue;
+
+typedef struct Node {
+	Client *client;
+	struct Node *next;
+}Node;
+
+typedef struct NodeW {
+	Worker *worker;
+	struct NodeW *next;
+}NodeW;
+

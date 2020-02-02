@@ -1,13 +1,6 @@
 #pragma once
-#include <stdlib.h>
-#include <string.h>
 
-extern Queue* primaryQueue;
-extern Queue* tempQueue;
-extern Queue* secondaryQueue;
-
-extern HANDLE CreateQueueSemaphore, CreatedQueueSemaphore, WriteSemaphoreTemp;
-
+#pragma region Declaration
 Queue* CreateQueue(int cap);
 bool IsEmpty(Queue* queue);
 bool IsFull(Queue* queue, int strlenMessage);
@@ -19,6 +12,8 @@ char* DequeueStrlenMessage(Queue* queue);
 bool PrimaryToSecondary();
 bool TempToPrimary();
 void DestroyQueue(Queue*);
+#pragma endregion
+
 
 Queue* CreateQueue(int cap) {
 	Queue* queue = (Queue*)malloc(sizeof(Queue));
@@ -133,16 +128,13 @@ bool TempToPrimary() {
 	{
 		primaryQueue->array[primaryQueue->rear++] = tempQueue->array[i];
 	}
-	//secondaryQueue->front = 0;
-	//secondaryQueue->size = primaryQueue->size + tempQueue->size;
 	primaryQueue->size = primaryQueue->size + tempQueue->size;
-	//primaryQueue->rear = secondaryQueue->size;
-
 	DestroyQueue(tempQueue);
-
+	tempQueue = NULL;
 	return true;
 }
 void DestroyQueue(Queue* queue) {
 	free(queue->array);
 	free(queue);
 }
+

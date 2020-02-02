@@ -1,9 +1,9 @@
 #pragma once
 
-typedef struct Node {
-	Client *client;
-	struct Node *next;
-}Node;
+void AddAtEnd(Node **head, Client *new_data);
+void deleteNode(Node **head_ref, int key);
+void FreeList(Node *head);
+Node* FindClient(Node *head, int clientId);
 
 void AddAtEnd(Node **head, Client *new_data) {
 	Node* new_node = (struct Node*) malloc(sizeof(struct Node));

@@ -117,12 +117,11 @@
   <ItemGroup>
     <ClCompile Include="list.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="threadFuncs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="list.h" />
     <ClInclude Include="structs.h" />
-    <ClInclude Include="threadFuncs.h" />
+    <ClInclude Include="workerToLoadBalancer.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.vcxproj">

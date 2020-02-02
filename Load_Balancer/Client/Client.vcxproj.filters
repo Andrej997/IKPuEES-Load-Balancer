@@ -26,7 +26,7 @@
     <ClInclude Include="clientMethods.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="threadFuncs.h">
+    <ClInclude Include="workerToClientOK.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

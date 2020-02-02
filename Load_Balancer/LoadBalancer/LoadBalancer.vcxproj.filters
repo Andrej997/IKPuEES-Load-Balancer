@@ -29,9 +29,6 @@
     <ClInclude Include="clientList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="threadFuncs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="workerList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -39,6 +36,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="redistribution.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dispecher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clientToLoadBalancer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="loadBalancerToWorker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="killThreadAndHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="externData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

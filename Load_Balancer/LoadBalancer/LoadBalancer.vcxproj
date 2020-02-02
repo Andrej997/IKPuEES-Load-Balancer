@@ -120,12 +120,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clientList.h" />
+    <ClInclude Include="clientToLoadBalancer.h" />
+    <ClInclude Include="dispecher.h" />
     <ClInclude Include="functionDefs.h" />
+    <ClInclude Include="killThreadAndHandle.h" />
+    <ClInclude Include="loadBalancerToWorker.h" />
+    <ClInclude Include="queue.h" />
     <ClInclude Include="redistribution.h" />
     <ClInclude Include="ringBuffer.h" />
     <ClInclude Include="workerList.h" />
     <ClInclude Include="structs.h" />
-    <ClInclude Include="threadFuncs.h" />
+    <ClInclude Include="externData.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.vcxproj">
