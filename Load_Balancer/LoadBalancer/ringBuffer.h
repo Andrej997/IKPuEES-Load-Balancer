@@ -134,7 +134,9 @@ bool TempToPrimary() {
 	return true;
 }
 void DestroyQueue(Queue* queue) {
-	free(queue->array);
-	free(queue);
+	if (queue != NULL) {
+		free(queue->array);
+		free(queue);
+	}
 }
 

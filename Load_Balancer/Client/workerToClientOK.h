@@ -7,6 +7,7 @@ DWORD WINAPI RecvMessageOK(void *vargp) {
 	timeval timeVal;
 	timeVal.tv_sec = 0;
 	timeVal.tv_usec = 0;
+	int numberStoredMsg = 0;
 
 	while (true) {
 		#pragma region Set
@@ -27,10 +28,16 @@ DWORD WINAPI RecvMessageOK(void *vargp) {
 		}
 		else if (FD_ISSET(socket, &recvset)) { // recv
 			char recvbuf[DEFAULT_BUFLEN];
+			int currentLength = 0;
 			iResult = recv(socket, recvbuf, DEFAULT_BUFLEN, 0);
 			if (iResult > 0) {
-				if (*(char*)recvbuf == 's')
-					printf("Message is stored\n");
+				while (currentLength < iResult) {
+					if (*(char*)(recvbuf + currentLength) == 's') {
+						numberStoredMsg++;
+						printf("Message is stored, number: %d\n", numberStoredMsg);
+					}
+					currentLength += 2;
+				}
 			}
 			else if (iResult == 0) { // connection was closed gracefully
 				printf("Connection with server closed.\n");

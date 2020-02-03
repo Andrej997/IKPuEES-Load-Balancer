@@ -220,7 +220,24 @@ int main(void) {
 			LeaveCriticalSection(&CriticalSectionForOutput);
 			#pragma endregion
 			AddAtEnd(&headWorkers, newWorker);
-			if (indexWorker > 0)
+			
+			int numberW = 0;
+			bool messageOnW = false;
+			NodeW* worker = headWorkers;
+			while (worker != NULL) {
+				numberW++;
+				if (worker->worker->counter > 0)
+					messageOnW = true;
+				worker = worker->next;
+
+			}
+			bool messageOnQueue = false;
+			EnterCriticalSection(&CriticalSectionForQueue);
+			if (primaryQueue->size > 0)
+				messageOnQueue = true;
+			LeaveCriticalSection(&CriticalSectionForQueue);
+			//if (indexWorker > 0) //ne smemo ispitivati po indeksu jer ne znamo koliko je zapravo aktivnih worker-a
+			if(numberW > 1 && (messageOnW || messageOnQueue))
 				ReleaseSemaphore(ReorganizeSemaphoreStart, 2, NULL);
 
 			++indexWorker;
