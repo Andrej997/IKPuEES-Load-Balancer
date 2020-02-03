@@ -20,7 +20,7 @@ DWORD WINAPI Dispecher(void *vargp) {
 		else {
 			ReleaseSemaphore(TrueSemaphore, 1, NULL);
 		}
-		//if (headWorkers != NULL) {
+		if (headWorkers != NULL) {
 			EnterCriticalSection(&CriticalSectionForQueue);
 			if (primaryQueue->size > 0 && headWorkers != NULL) {
 				LeaveCriticalSection(&CriticalSectionForQueue);
@@ -57,13 +57,15 @@ DWORD WINAPI Dispecher(void *vargp) {
 				MoveToEnd(&headWorkers);
 				//Sleep(1000);
 				free(deq);
+				//MoveToEnd(&headWorkers);
+
 			}
 			else {	// posto nije ispunjen bio uslov, moze da se napusti kriticna sekcija
 				LeaveCriticalSection(&CriticalSectionForQueue);
 			}
 			//MergeSortWorkerList(&headWorkers);
-			MoveToEnd(&headWorkers);
-		//}
+			//MoveToEnd(&headWorkers);
+		}
 	}
 	return 0;
 }

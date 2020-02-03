@@ -128,10 +128,10 @@ int __cdecl main(int argc, char **argv)
 						{
 							//message->message[i] = recvbuf[i];
 							message->message[i] = *(char*)(recvbuf + i + currentLength);
-							if(i > 21)
-								printf("%c", message->message[i]);
+							//if(i > 21)
+								//printf("%c", message->message[i]);
 						}
-						//message->message[message->size + 4] = NULL;
+						message->message[message->size + 4] = NULL;
 						currentLength += lengthCurrentMessage + 5;
 
 						printf("\n");
@@ -171,7 +171,7 @@ int __cdecl main(int argc, char **argv)
 							return 1;*/
 						}
 						//free(message->message);
-						free(message);
+						//free(message);
 						free(messageOK);
 					}
 
