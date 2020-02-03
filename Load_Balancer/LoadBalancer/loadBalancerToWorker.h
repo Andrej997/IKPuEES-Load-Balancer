@@ -122,6 +122,7 @@ DWORD WINAPI SendAndRecvWorkerMessage(void *vargp) {
 								if (iResult > 0) {
 									EnterCriticalSection(&CriticalSectionForOutput);
 									printf("(myThreadFunWorker) send");
+									free(deq);
 									LeaveCriticalSection(&CriticalSectionForOutput);
 								}
 								if (iResult == SOCKET_ERROR) {

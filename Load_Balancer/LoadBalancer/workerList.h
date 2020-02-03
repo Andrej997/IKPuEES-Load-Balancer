@@ -37,6 +37,7 @@ void deleteNodeW(NodeW **head_ref, int key)
 	if (temp != NULL && temp->worker->acceptedSocket == key) {
 		*head_ref = temp->next;
 		free(temp);
+		temp = NULL;
 		return;
 	}
 
@@ -59,7 +60,10 @@ void FreeList(NodeW *head) {
 		temp = head;
 		//CloseHandle(temp->worker->thread);
 		head = head->next;
+		free(temp->worker->ipAdr);
+		temp->worker->ipAdr = NULL;
 		free(temp);
+		temp = NULL;
 	}
 	return;
 }

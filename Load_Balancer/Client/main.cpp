@@ -109,7 +109,7 @@ int __cdecl main(int argc, char **argv)
 			#pragma endregion
 
 			#pragma region Send20MessageLength10B
-			while (sendMessagecount < 100) {
+			while (sendMessagecount < 20) {
 				message = Generate10BMsg();
 				iResult = send(connectSocket, message, (int)strlen(message) + 1, 0);
 
@@ -123,7 +123,7 @@ int __cdecl main(int argc, char **argv)
 				sendMessagecount++;
 				printf("\n\tSend message count: %ld\n", sendMessagecount);
 				printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
-				Sleep(2000);
+				Sleep(100);
 			}
 			#pragma endregion
 			printf("Client sent all messages...\n");

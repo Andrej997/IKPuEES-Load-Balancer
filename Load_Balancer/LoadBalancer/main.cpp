@@ -161,6 +161,7 @@ int main(void) {
 				0,
 				&threadId
 			);
+			//free(clientip);
 			#pragma endregion
 			#pragma region PrintfInfo
 			EnterCriticalSection(&CriticalSectionForOutput);
@@ -269,7 +270,10 @@ int main(void) {
 	CloseHandle(TrueSemaphore);
 	#pragma endregion
 	#pragma region DestroyQueue
-	DestroyQueue(primaryQueue);
+	if (primaryQueue != NULL) {
+		DestroyQueue(primaryQueue);
+		primaryQueue = NULL;
+	}
 	if (tempQueue != NULL)
 		DestroyQueue(tempQueue);
 	if (secondaryQueue != NULL)
@@ -279,6 +283,7 @@ int main(void) {
 	#pragma region DeleteCriticalSection
 	DeleteCriticalSection(&CriticalSectionForQueue);
 	DeleteCriticalSection(&CriticalSectionForOutput);
+	DeleteCriticalSection(&CriticalSectionForReorQueue);
 	#pragma endregion
 
 	return 0;

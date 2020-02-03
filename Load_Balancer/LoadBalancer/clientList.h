@@ -53,7 +53,10 @@ void FreeList(Node *head) {
 		temp = head;
 		//CloseHandle(temp->client->thread);
 		head = head->next;
+		free(temp->client->ipAdr);
+		temp->client->ipAdr = NULL;
 		free(temp);
+		temp = NULL;
 	}
 	return;
 }

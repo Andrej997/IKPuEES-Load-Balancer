@@ -26,6 +26,8 @@ void FreeMessages(Node **head, int numOfMsg) {
 	while (i < numOfMsg) {
 		temp = headMessages;
 		headMessages = headMessages->next;
+		if (headMessages == NULL)
+			break;
 		free(temp);
 		++i;
 	}
