@@ -109,7 +109,7 @@ int __cdecl main(int argc, char **argv)
 			#pragma endregion
 
 			#pragma region Send20MessageLength10B
-			while (sendMessagecount < 20000) {
+			while (sendMessagecount < 20) {
 				if (_kbhit())
 					break;
 				message = Generate10BMsg();
@@ -125,7 +125,7 @@ int __cdecl main(int argc, char **argv)
 				sendMessagecount++;
 				printf("\nSend message count:%ld\n", sendMessagecount);
 				printf("Message: %s (%d bytes)\n", message, iResult);
-				Sleep(1000);
+				Sleep(100);
 			}
 			#pragma endregion
 			printf("Client sent all messages...\n");

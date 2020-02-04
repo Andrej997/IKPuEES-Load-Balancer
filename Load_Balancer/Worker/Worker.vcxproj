@@ -121,7 +121,6 @@
   <ItemGroup>
     <ClInclude Include="list.h" />
     <ClInclude Include="structs.h" />
-    <ClInclude Include="workerToLoadBalancer.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.vcxproj">
