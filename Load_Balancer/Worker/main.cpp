@@ -34,7 +34,7 @@ int __cdecl main(int argc, char **argv)
 	headMessages = NULL;
 	int iResult = -1;  // variable used to store function return value
 	int iResultSecond = -1;  // variable used to store function return value
-	char recvbuf[DEFAULT_BUFLEN];
+	//char recvbuf[DEFAULT_BUFLEN];
 	SOCKET connectSocket; // socket used to communicate with server
 	#pragma endregion
 
@@ -75,6 +75,7 @@ int __cdecl main(int argc, char **argv)
 		}
 		else if (FD_ISSET(connectSocket, &recvset)) { // recv
 			int currentLength = 0;
+			char recvbuf[DEFAULT_BUFLEN];
 			iResult = recv(connectSocket, recvbuf, DEFAULT_BUFLEN, 0);
 			if (iResult > 0) {
 				if (*(char*)recvbuf == 'r') {  // za reorganizaciju
@@ -97,7 +98,7 @@ int __cdecl main(int argc, char **argv)
 								//return 1;
 							}
 						}
-						printf("Vraceno %d ...\n", numOfMgs);
+						printf("Return %d message...\n", numOfMgs);
 						Node* temp = headMessages;
 						int brojPoruka = 0;
 						if (temp != NULL)
@@ -107,7 +108,7 @@ int __cdecl main(int argc, char **argv)
 							//printf("%s\n", temp->message);
 							temp = temp->next;
 						}
-						printf("Ukupan broj poruka:%d\n", brojPoruka);
+						printf("Total number of messages: %d \n", brojPoruka);
 					}
 				}
 				else if (*(char*)recvbuf != 'O') {	//aaaaaaaaaa
@@ -125,13 +126,11 @@ int __cdecl main(int argc, char **argv)
 						message->clientId = *(int*)(recvbuf + 4);
 						++msgCount;
 
-						printf("%d) : ", message->size - 17);
-						for (int i = 0; i < message->size + 4; i++)
-						{
-							//message->message[i] = recvbuf[i];
+						printf("%d bytes): ", message->size - 17);
+						for (int i = 0; i < message->size + 4; i++) {
 							message->message[i] = *(char*)(recvbuf + i + currentLength);
-							//if(i > 21)
-								//printf("%c", message->message[i]);
+							if(i > 21)
+								printf("%c", message->message[i]);
 						}
 						message->message[message->size + 4] = NULL;
 						currentLength += lengthCurrentMessage + 5;
@@ -148,7 +147,7 @@ int __cdecl main(int argc, char **argv)
 							brojPoruka++;
 							temp = temp->next;
 						}
-						printf("Ukupan broj poruka:%d\n", brojPoruka);
+						printf("Total number of messages: %d \n", brojPoruka);
 
 						union {
 							int id;

@@ -10,6 +10,7 @@
 #pragma endregion
 
 #pragma region ExternVariables
+//extern int reorMessageCount;
 extern int globalIdWorker;
 extern Node *headClients;
 extern NodeW *headWorkers;

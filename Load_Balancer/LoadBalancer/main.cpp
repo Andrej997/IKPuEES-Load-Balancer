@@ -25,6 +25,7 @@
 #pragma endregion
 
 #pragma region GlobalVariable
+//int reorMessageCount = 0;
 int globalIdClient = 123456;
 int globalIdWorker = 1;
 int indexClient = 0; // index counter for clients
@@ -76,11 +77,13 @@ int main(void) {
 	listenSocket = SetListenSocket(DEFAULT_PORT);  // Socket used for listening for new clients 
 	listenSocketWorker = SetListenSocket(DEFAULT_PORT_WORKER);  // Socket used for listening for new workers
 	
+	#pragma region WelcomeMessage
 	EnterCriticalSection(&CriticalSectionForOutput);
 	printf("Server initialized, waiting for clients...\n");
 	printf("Press enter to exit...\n");
 	LeaveCriticalSection(&CriticalSectionForOutput);
-
+	#pragma endregion
+	
 	#pragma region CreateThreads
 	HANDLE dispecher = CreateThread(NULL,
 		0,
@@ -145,9 +148,8 @@ int main(void) {
 				WSACleanup();
 				return 1;
 			}
-			char *clientip = new char[20];
+			char clientip[20];
 			strcpy(clientip, inet_ntoa(address.sin_addr));
-			//printf("Client port: %d, IP address: %s is accepted\n", address.sin_port, clientip);
 			#pragma region CreateAndInitThreadForClient
 			DWORD threadId;
 			newClient->id = globalIdClient++;
@@ -166,7 +168,7 @@ int main(void) {
 			#pragma region PrintfInfo
 			EnterCriticalSection(&CriticalSectionForOutput);
 			printf(
-				"-----------\n\tClients[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\n\tis accepted\n----------------\n"
+				"-----------\n\tClients[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\tis accepted\n----------------\n"
 				, indexClient,
 				newClient->id,
 				newClient->ipAdr,
@@ -184,15 +186,14 @@ int main(void) {
 			if (newWorker->acceptedSocket == INVALID_SOCKET)
 			{
 				EnterCriticalSection(&CriticalSectionForOutput);
-				printf("accept failed with error: %d\n", WSAGetLastError());
+				printf("LB accept failed with error: %d\n", WSAGetLastError());
 				LeaveCriticalSection(&CriticalSectionForOutput);
 				closesocket(listenSocketWorker);
 				WSACleanup();
 				return 1;
 			}
-			char *workerip = new char[20];
+			char workerip[20];
 			strcpy(workerip, inet_ntoa(address.sin_addr));
-			//printf("Worker port: %d, IP address: %s is accepted\n", address.sin_port, workerip);
 			#pragma region CreateAndInitThreadForWorker
 			DWORD threadId;
 			newWorker->id = globalIdWorker++;
@@ -211,7 +212,7 @@ int main(void) {
 			#pragma region PrintfInfo
 			EnterCriticalSection(&CriticalSectionForOutput);
 			printf(
-				"-----------\nWorker[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\n\tis accepted\n----------------\n"
+				"-----------\nWorker[%d]\nid: %d\nip Address: %s\nport: %d\nthreadId:%d \n\tis accepted\n----------------\n"
 				, indexWorker,
 				newWorker->id,
 				newWorker->ipAdr,
@@ -237,10 +238,8 @@ int main(void) {
 			if (primaryQueue->size > 0)
 				messageOnQueue = true;
 			LeaveCriticalSection(&CriticalSectionForQueue);
-			//if (indexWorker > 0) //ne smemo ispitivati po indeksu jer ne znamo koliko je zapravo aktivnih worker-a
 			if(numberW > 1 && (messageOnW || messageOnQueue))
 				ReleaseSemaphore(ReorganizeSemaphoreStart, 2, NULL);
-
 			++indexWorker;
 		}
 	} while (1);

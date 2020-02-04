@@ -34,7 +34,8 @@ DWORD WINAPI RecvMessageOK(void *vargp) {
 				while (currentLength < iResult) {
 					if (*(char*)(recvbuf + currentLength) == 's') {
 						numberStoredMsg++;
-						printf("Message is stored, number: %d\n", numberStoredMsg);
+						//printf("Total message is stored: %d\n", numberStoredMsg);
+						printf("Message is stored.\n");
 					}
 					currentLength += 2;
 				}

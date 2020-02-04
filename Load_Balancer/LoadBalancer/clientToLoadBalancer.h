@@ -40,8 +40,7 @@ DWORD WINAPI RecvClientMessage(void *vargp) {
 				while (temp != NULL) {
 					if (socket == temp->client->acceptedSocket) {
 						EnterCriticalSection(&CriticalSectionForOutput);
-						//printf("Thread id = %d. Client id: %d, port: %d, IP address: %s. Message: %s\n", GetCurrentThreadId(), temp->client->id, temp->client->port, temp->client->ipAdr, recvbuf);
-						printf("Thread id = %d. Client id: %d, port: %d, IP address: %s. Length recvbuf: %d\n", GetCurrentThreadId(), temp->client->id, temp->client->port, temp->client->ipAdr, iResult);
+						printf("Recv client message:\nThread id = %d.\nClient id: %d.\nPort: %d\nIP address: %s.\nLength message: %d\n\n", GetCurrentThreadId(), temp->client->id, temp->client->port, temp->client->ipAdr, iResult);
 						LeaveCriticalSection(&CriticalSectionForOutput);
 						break;
 					}
@@ -96,9 +95,9 @@ DWORD WINAPI RecvClientMessage(void *vargp) {
 						}
 					}
 				
-					EnterCriticalSection(&CriticalSectionForOutput);
+					/*EnterCriticalSection(&CriticalSectionForOutput);
 					printf("lengthCurrentMessage = %d\n", lengthCurrentMessage);
-					LeaveCriticalSection(&CriticalSectionForOutput);
+					LeaveCriticalSection(&CriticalSectionForOutput);*/
 
 					WaitForSingleObject(WriteSemaphore, INFINITE);
 
@@ -108,7 +107,7 @@ DWORD WINAPI RecvClientMessage(void *vargp) {
 					LeaveCriticalSection(&CriticalSectionForQueue);
 
 					ReleaseSemaphore(ReadSemaphore, 1, NULL);
-					ReleaseSemaphore(WriteSemaphore, 1, NULL);
+					//ReleaseSemaphore(WriteSemaphore, 1, NULL);
 					
 					/*EnterCriticalSection(&CriticalSectionForOutput);
 					EnterCriticalSection(&CriticalSectionForQueue);
@@ -122,7 +121,7 @@ DWORD WINAPI RecvClientMessage(void *vargp) {
 					LeaveCriticalSection(&CriticalSectionForQueue);
 					LeaveCriticalSection(&CriticalSectionForOutput);*/
 					numberRecv++;
-					printf("Recv: %d\n", numberRecv);
+					printf("Total recv client message: %d\n", numberRecv);
 					free(message);
 				}
 

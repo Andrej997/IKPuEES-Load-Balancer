@@ -50,17 +50,14 @@ DWORD WINAPI Dispecher(void *vargp) {
 				}
 				EnterCriticalSection(&CriticalSectionForOutput);
 				EnterCriticalSection(&CriticalSectionForQueue);
-				printf("primaryqueue->size = %d \n", primaryQueue->size);
+				//printf("primaryqueue->size = %d \n", primaryQueue->size);
 				LeaveCriticalSection(&CriticalSectionForQueue);
 				LeaveCriticalSection(&CriticalSectionForOutput);
 
 				++headWorkers->worker->counter;
 				//MergeSortWorkerList(&headWorkers);
 				MoveToEnd(&headWorkers);
-				//Sleep(1000);
 				free(deq);
-				//MoveToEnd(&headWorkers);
-
 			}
 			else {	// posto nije ispunjen bio uslov, moze da se napusti kriticna sekcija
 				LeaveCriticalSection(&CriticalSectionForQueue);

@@ -41,20 +41,16 @@ DWORD WINAPI RecvClientMessage(void *vargp) {
 					temp = temp->next;
 				}*/
 			}
-			else if (iResult == 0)
-			{
+			else if (iResult == 0) {
 				printf("Connection with client closed.\n");
 				closesocket(socket);
 			}
-			else
-			{
-				// there was an error during recv
+			else { // there was an error during recv
 				printf("recv failed with error: %d\n", WSAGetLastError());
 				closesocket(socket);
 			}
 		}
-		else if (FD_ISSET(socket, &writeSet))
-		{
+		else if (FD_ISSET(socket, &writeSet)) {
 			const char *messageToSend = "OK.";
 			iResult = send(socket, messageToSend, (int)strlen(messageToSend) + 1, 0);
 			if (iResult == SOCKET_ERROR)

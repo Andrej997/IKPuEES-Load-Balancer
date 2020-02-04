@@ -123,9 +123,9 @@ int __cdecl main(int argc, char **argv)
 					return 1;
 				}
 				sendMessagecount++;
-				printf("\n\tSend message count: %ld\n", sendMessagecount);
-				printf("Bytes Sent: %ld\nMessage: %s\n", iResult, message);
-				Sleep(500);
+				printf("\nSend message count:%ld\n", sendMessagecount);
+				printf("Message: %s (%d bytes)\n", message, iResult);
+				Sleep(1000);
 			}
 			#pragma endregion
 			printf("Client sent all messages...\n");
