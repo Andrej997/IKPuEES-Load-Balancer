@@ -28,6 +28,8 @@ DWORD WINAPI Dispecher(void *vargp) {
 
 				EnterCriticalSection(&CriticalSectionForQueue);
 				char* deq = Dequeue(primaryQueue);
+				if (deq == NULL)
+					continue;
 				LeaveCriticalSection(&CriticalSectionForQueue);
 
 				ReleaseSemaphore(ReadSemaphore, 1, NULL);

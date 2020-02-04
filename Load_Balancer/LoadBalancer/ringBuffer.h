@@ -88,6 +88,8 @@ char* Dequeue(Queue* queue) {
 			queue->front = (queue->front + 1) % queue->capacity;
 		}
 		int strlenMessageInt = *(int*)strlenMessageString;
+		if (strlenMessageInt < 0 || strlenMessageInt > 10000) // uslovi su potrebni jer ne moze da uhavatimo kad se zapravo desi problem
+			return NULL;
 		message = (char*)malloc((sizeof(char) * strlenMessageInt) + 4);
 		for (int i = 0; i < 4; i++)
 		{

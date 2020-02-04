@@ -14,7 +14,7 @@
 #pragma endregion
 
 #pragma region DefaultValue
-#define DEFAULT_BUFLEN 4048
+#define DEFAULT_BUFLEN 4048 * 2
 #define DEFAULT_PORT 27016
 #pragma endregion
 
@@ -80,33 +80,35 @@ int __cdecl main(int argc, char **argv)
 				if (*(char*)recvbuf == 'r') {  // za reorganizaciju
 					printf("Worker recv: %s\n", recvbuf);
 					int numOfMgs = *(int*)(recvbuf + 1);
-					int a = 0;
-					
-					char *reorMessage = ConvertToString(headMessages, numOfMgs, &a);
+					if (numOfMgs > 1) {
+						int a = 0;
 
-					iResult = select(0, NULL, &set, NULL, &timeVal);
-					if (FD_ISSET(connectSocket, &set)) {
-						//SetNonblocking(&connectSocket);
-						iResult = send(connectSocket, reorMessage, a + 1, 0);
-						if (iResult == SOCKET_ERROR)
-								{
-									printf("send failed with error: %d\n", WSAGetLastError());
-									//closesocket(connectSocket);
-									//WSACleanup();
-									//return 1;
-								}
+						char *reorMessage = ConvertToString(headMessages, numOfMgs, &a);
+
+						iResult = select(0, NULL, &set, NULL, &timeVal);
+						if (FD_ISSET(connectSocket, &set)) {
+							//SetNonblocking(&connectSocket);
+							iResult = send(connectSocket, reorMessage, a + 1, 0);
+							if (iResult == SOCKET_ERROR)
+							{
+								printf("send failed with error: %d\n", WSAGetLastError());
+								//closesocket(connectSocket);
+								//WSACleanup();
+								//return 1;
+							}
+						}
+						printf("Vraceno %d ...\n", numOfMgs);
+						Node* temp = headMessages;
+						int brojPoruka = 0;
+						if (temp != NULL)
+							brojPoruka++;
+						while (temp->next != NULL) {
+							brojPoruka++;
+							//printf("%s\n", temp->message);
+							temp = temp->next;
+						}
+						printf("Ukupan broj poruka:%d\n", brojPoruka);
 					}
-					printf("Vraceno %d ...\n", numOfMgs);
-					Node* temp = headMessages;
-					int brojPoruka = 0;
-					if (temp != NULL)
-						brojPoruka++;
-					while (temp->next != NULL) {
-						brojPoruka++;
-						//printf("%s\n", temp->message);
-						temp = temp->next;
-					}
-					printf("Ukupan broj poruka:%d\n", brojPoruka);
 				}
 				else if (*(char*)recvbuf != 'O') {	//aaaaaaaaaa
 					
